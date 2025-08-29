@@ -1,0 +1,112 @@
+# Docker Compose Override para Desenvolvimento Local
+# =================================================
+
+# Este arquivo é usado para sobrescrever configurações do docker-compose.yml
+# É útil para desenvolvimento local e debugging
+
+services:
+  vision-api:
+    # Volumes para desenvolvimento
+    volumes:
+      - .:/app
+      - /app/__pycache__
+      - /app/.pytest_cache
+      - /app/logs
+    
+    # Variáveis de ambiente para desenvolvimento
+    environment:
+      - ENVIRONMENT=development
+      - API_RELOAD=true
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+    
+    # Portas adicionais para debugging
+    ports:
+      - "8000:8000"  # API REST
+      - "8080:8080"  # Dashboard
+      - "5678:5678"  # Debugger (se necessário)
+    
+    # Comando para desenvolvimento
+    command: ["python", "-m", "vision.api.api_server", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    
+    # Health check mais frequente para desenvolvimento
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Configurações de desenvolvimento para outros serviços
+  postgres:
+    environment:
+      - POSTGRES_DB=vision_dev_db
+      - POSTGRES_USER=vision_user
+      - POSTGRES_PASSWORD=dev-postgres-password
+    
+    # Volumes para persistir dados de desenvolvimento
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./init_scripts:/docker-entrypoint-initdb.d
+
+  redis:
+    environment:
+      - REDIS_PASSWORD=dev-redis-password
+    
+    # Comando para desenvolvimento (sem senha para facilitar)
+    command: redis-server --requirepass dev-redis-password
+
+  # Serviços de monitoramento com configurações de desenvolvimento
+  prometheus:
+    volumes:
+      - ./monitoring/prometheus:/etc/prometheus
+      - prometheus_dev_data:/prometheus
+    
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=24h'
+      - '--web.enable-lifecycle'
+
+  grafana:
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=true
+    
+    volumes:
+      - ./monitoring/grafana:/etc/grafana/provisioning
+      - grafana_dev_data:/var/lib/grafana
+
+  elasticsearch:
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    
+    volumes:
+      - elasticsearch_dev_data:/usr/share/elasticsearch/data
+
+  logstash:
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+    
+    volumes:
+      - ./monitoring/logstash:/usr/share/logstash/pipeline
+      - ./monitoring/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
+
+  kibana:
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    
+    volumes:
+      - ./monitoring/kibana:/usr/share/kibana/config
+
+volumes:
+  postgres_dev_data:
+    driver: local
+  prometheus_dev_data:
+    driver: local
+  grafana_dev_data:
+    driver: local
+  elasticsearch_dev_data:
+    driver: local

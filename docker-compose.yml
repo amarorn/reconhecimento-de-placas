@@ -1,7 +1,8 @@
 # Docker Compose para Desenvolvimento - Arquitetura de Visão Computacional
 # ======================================================================
 
-version: '3.8'
+# Docker Compose para Desenvolvimento - Arquitetura de Visão Computacional
+# ======================================================================
 
 services:
   # Aplicação principal
