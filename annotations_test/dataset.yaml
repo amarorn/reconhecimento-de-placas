@@ -1,0 +1,11 @@
+names:
+- regulamentacao
+- advertencia
+- informacao
+- servico
+- educacao
+nc: 5
+path: sinalizacao_test
+test: test/images
+train: train/images
+val: val/images

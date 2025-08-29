@@ -1,0 +1,63 @@
+{
+  "metadata": {
+    "total_placas": 2,
+    "por_tipo": {
+      "regulamentacao": 1,
+      "advertencia": 1
+    },
+    "por_codigo": {
+      "R-46": 1,
+      "A-50B": 1
+    },
+    "data_geracao": "2025-08-29T01:34:36.905027",
+    "fonte": "Manual Brasileiro de Sinalização de Trânsito (MBST)",
+    "versao": "2.0"
+  },
+  "placas": {
+    "R-46": {
+      "nome": "Circulação Compartilhada Ciclistas E Pedestres",
+      "tipo": "regulamentacao",
+      "significado": "Regulamentação específica: Circulação Compartilhada Ciclistas E Pedestres",
+      "acao": "Seguir obrigatoriamente a regulamentação indicada",
+      "penalidade": "Multa e pontos na carteira",
+      "cores": [
+        "azul",
+        "branco"
+      ],
+      "formas": [
+        "circular",
+        "retangular"
+      ],
+      "aplicacao": "",
+      "observacoes": "",
+      "pagina": null,
+      "metadata": {
+        "data_extracao": "2025-08-29T01:34:36.772122",
+        "metodo": "regex_pattern",
+        "padrao_usado": "([^0-9\\n]+?)\\s+([R|A|I|S|E]-[\\d]+[a-z]?)(?=\\n|$)"
+      }
+    },
+    "A-50B": {
+      "nome": "Veículos À Esquerda Vlt À Direita",
+      "tipo": "advertencia",
+      "significado": "Advertência de perigo: Veículos À Esquerda Vlt À Direita",
+      "acao": "Reduzir velocidade e ter atenção especial",
+      "penalidade": "Não aplicável (advertência)",
+      "cores": [
+        "amarelo",
+        "preto"
+      ],
+      "formas": [
+        "triangular"
+      ],
+      "aplicacao": "",
+      "observacoes": "",
+      "pagina": null,
+      "metadata": {
+        "data_extracao": "2025-08-29T01:34:36.903947",
+        "metodo": "regex_pattern",
+        "padrao_usado": "([R|A|I|S|E]-[\\d]+[a-z]?)\\s+([^0-9\\n]+?)(?=\\n|$)"
+      }
+    }
+  }
+}

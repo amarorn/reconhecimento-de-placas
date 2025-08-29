@@ -1,0 +1,136 @@
+{
+    "system": {
+        "name": "MBST Vision System",
+        "version": "2.0.0",
+        "description": "Sistema avançado de visão computacional para placas de sinalização brasileiras",
+        "author": "Sistema MBST",
+        "created": "2025-08-29"
+    },
+    
+    "models": {
+        "yolo": {
+            "model_path": "yolov8n.pt",
+            "use_custom": false,
+            "custom_model_path": "models/mbst_yolo.pt",
+            "confidence_threshold": 0.5,
+            "nms_threshold": 0.4,
+            "input_size": 640,
+            "device": "auto"
+        },
+        
+        "ocr": {
+            "languages": ["pt", "en"],
+            "gpu": true,
+            "model_path": "auto",
+            "confidence_threshold": 0.3,
+            "text_detection": true,
+            "paragraph": false
+        },
+        
+        "classifier": {
+            "use_custom": false,
+            "model_path": "models/mbst_classifier.pt",
+            "input_size": 224,
+            "num_classes": 5,
+            "confidence_threshold": 0.7
+        }
+    },
+    
+    "processing": {
+        "image_preprocessing": {
+            "resize": true,
+            "target_size": [640, 640],
+            "normalize": true,
+            "augmentation": false,
+            "clahe": true,
+            "denoise": true,
+            "sharpen": false
+        },
+        
+        "detection": {
+            "min_plate_size": 50,
+            "max_plate_size": 500,
+            "aspect_ratio_range": [0.5, 3.0],
+            "overlap_threshold": 0.3
+        },
+        
+        "classification": {
+            "visual_weight": 0.6,
+            "text_weight": 0.4,
+            "confidence_boost": 0.1,
+            "conflict_penalty": 0.2
+        }
+    },
+    
+    "dataset": {
+        "path": "dataset_mbst",
+        "training_split": 0.8,
+        "validation_split": 0.1,
+        "test_split": 0.1,
+        "augmentation": {
+            "rotation": [-15, 15],
+            "brightness": [0.8, 1.2],
+            "contrast": [0.8, 1.2],
+            "noise": 0.05,
+            "blur": 0.1
+        }
+    },
+    
+    "feedback": {
+        "database": "feedback.db",
+        "auto_correction": false,
+        "correction_threshold": 0.8,
+        "feedback_required": true,
+        "export_format": "json"
+    },
+    
+    "output": {
+        "save_results": true,
+        "save_annotations": true,
+        "save_visualizations": true,
+        "output_format": "json",
+        "results_directory": "results",
+        "annotations_directory": "annotations",
+        "visualizations_directory": "visualizations"
+    },
+    
+    "api": {
+        "endpoint": "http://localhost:8000",
+        "timeout": 30,
+        "retry_attempts": 3,
+        "batch_size": 10,
+        "rate_limit": 100
+    },
+    
+    "logging": {
+        "level": "INFO",
+        "file": "logs/vision_system.log",
+        "max_size": "10MB",
+        "backup_count": 5,
+        "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    },
+    
+    "performance": {
+        "max_workers": 4,
+        "batch_processing": true,
+        "memory_limit": "2GB",
+        "gpu_memory_fraction": 0.8,
+        "optimization_level": "balanced"
+    },
+    
+    "security": {
+        "input_validation": true,
+        "file_size_limit": "10MB",
+        "allowed_formats": ["jpg", "jpeg", "png", "bmp", "tiff"],
+        "scan_malware": false,
+        "encrypt_results": false
+    },
+    
+    "monitoring": {
+        "enable_metrics": true,
+        "collect_feedback": true,
+        "performance_tracking": true,
+        "error_reporting": true,
+        "health_checks": true
+    }
+}

@@ -1,0 +1,16 @@
+{
+  "total_images": 6,
+  "images": [
+    "sinalizacao_test/placa_pare.jpg",
+    "sinalizacao_test/placa_dê_preferencia.jpg",
+    "sinalizacao_test/placa_cruzamento.jpg",
+    "sinalizacao_test/placa_curva.jpg",
+    "sinalizacao_test/placa_hospital.jpg",
+    "sinalizacao_test/placa_escola.jpg"
+  ],
+  "types": {
+    "regulamentacao": 2,
+    "advertencia": 2,
+    "informacao": 2
+  }
+}
