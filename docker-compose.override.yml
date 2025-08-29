@@ -101,6 +101,14 @@ services:
     volumes:
       - ./monitoring/kibana:/usr/share/kibana/config
 
+  # Mudar porta do Logstash para evitar conflito com porta 5000
+  logstash:
+    ports:
+      - "5044:5044"
+      - "5001:5000/tcp"  # Mudando de 5000 para 5001
+      - "5001:5000/udp"  # Mudando de 5000 para 5001
+      - "9600:9600"
+
 volumes:
   postgres_dev_data:
     driver: local
