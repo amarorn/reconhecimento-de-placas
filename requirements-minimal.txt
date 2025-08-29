@@ -1,0 +1,39 @@
+# Requirements Mínimos - Arquitetura Refatorada
+# =============================================
+# Apenas as dependências essenciais para funcionamento básico
+
+# Framework Web
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+
+# Visão Computacional Essencial
+opencv-python>=4.8.1
+numpy>=1.24.0
+Pillow>=10.1.0
+
+# Machine Learning Essencial
+torch>=2.0.0
+ultralytics>=8.0.0
+
+# OCR Essencial (escolha um)
+paddleocr>=2.7.0
+# easyocr>=1.7.0  # Alternativa
+# pytesseract>=0.3.10  # Alternativa
+
+# Processamento de dados
+pandas>=2.0.0
+
+# Visualização básica
+matplotlib>=3.7.0
+
+# Utilitários essenciais
+python-dotenv>=1.0.0
+click>=8.1.0
+
+# =============================================================================
+# NOTAS:
+# =============================================================================
+# Este arquivo contém apenas as dependências mínimas necessárias
+# Para funcionalidades completas, use requirements.txt
+# Para desenvolvimento, use requirements-dev.txt
+# Para produção, use requirements-prod.txt
