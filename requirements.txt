@@ -93,7 +93,7 @@ bandit>=1.7.0
 safety>=2.3.0
 
 # Mocks e Stubs
-unittest-mock>=1.0.0
+# unittest-mock>=1.0.0
 freezegun>=1.2.0
 
 # Relatórios e Cobertura
