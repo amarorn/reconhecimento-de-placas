@@ -74,7 +74,6 @@ build_dev() {
     docker build \
         --file Dockerfile.dev \
         --tag vision-api:dev \
-        --target development \
         --build-arg BUILDKIT_INLINE_CACHE=1 \
         --progress=plain \
         .
@@ -95,7 +94,6 @@ build_prod() {
     docker build \
         --file Dockerfile \
         --tag vision-api:prod \
-        --target production \
         --build-arg BUILDKIT_INLINE_CACHE=1 \
         --progress=plain \
         .
