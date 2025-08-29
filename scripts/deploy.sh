@@ -111,15 +111,35 @@ cleanup() {
 build_images() {
     log "Construindo imagens Docker..."
     
-    if [ -f "$COMPOSE_FILE" ]; then
-        docker-compose -f "$COMPOSE_FILE" build --no-cache || {
-            error "Falha no build das imagens"
-            exit 1
-        }
-        success "Imagens construídas com sucesso"
+    # Usar script de build otimizado se disponível
+    if [ -f "scripts/build.sh" ]; then
+        chmod +x scripts/build.sh
+        
+        if [ "$ENVIRONMENT" = "production" ]; then
+            ./scripts/build.sh prod || {
+                error "Falha no build da imagem de produção"
+                exit 1
+            }
+        else
+            ./scripts/build.sh dev || {
+                error "Falha no build da imagem de desenvolvimento"
+                exit 1
+            }
+        fi
+        
+        success "Imagens construídas com sucesso usando script otimizado"
     else
-        error "Arquivo $COMPOSE_FILE não encontrado"
-        exit 1
+        # Fallback para build tradicional
+        if [ -f "$COMPOSE_FILE" ]; then
+            docker-compose -f "$COMPOSE_FILE" build --no-cache || {
+                error "Falha no build das imagens"
+                exit 1
+            }
+            success "Imagens construídas com sucesso (método tradicional)"
+        else
+            error "Arquivo $COMPOSE_FILE não encontrado"
+            exit 1
+        fi
     fi
 }
 
