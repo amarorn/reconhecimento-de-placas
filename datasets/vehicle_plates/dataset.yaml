@@ -1,0 +1,21 @@
+{
+  "path": "/Users/amaro/Documents/estudo/reconhecimento-de-placas/datasets/vehicle_plates",
+  "train": "images/train",
+  "val": "images/val",
+  "test": "images/test",
+  "nc": 12,
+  "names": [
+    "car",
+    "truck",
+    "motorcycle",
+    "bus",
+    "van",
+    "tractor",
+    "mercosul_plate",
+    "mercosul_motorcycle_plate",
+    "old_standard_plate",
+    "diplomatic_plate",
+    "official_plate",
+    "temporary_plate"
+  ]
+}

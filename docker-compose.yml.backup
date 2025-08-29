@@ -1,0 +1,212 @@
+# Docker Compose para Desenvolvimento - Arquitetura de Visão Computacional
+# ======================================================================
+
+# Docker Compose para Desenvolvimento - Arquitetura de Visão Computacional
+# ======================================================================
+
+services:
+  # Aplicação principal
+  vision-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: vision-api-dev
+    ports:
+      - "8000:8000"  # API REST
+      - "8080:8080"  # Dashboard
+    environment:
+      - ENVIRONMENT=development
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - API_RELOAD=true
+      - SECRET_KEY=dev-secret-key-change-in-production
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - REFRESH_TOKEN_EXPIRE_DAYS=7
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:8080
+      - ALLOWED_HOSTS=localhost,127.0.0.1
+    volumes:
+      - .:/app
+      - /app/__pycache__
+      - /app/.pytest_cache
+    networks:
+      - vision-network
+    depends_on:
+      - redis
+      - postgres
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Redis para cache e sessões
+  redis:
+    image: redis:7-alpine
+    container_name: vision-redis-dev
+    ports:
+      - "6379:6379"
+    environment:
+      - REDIS_PASSWORD=dev-redis-password
+    volumes:
+      - redis_data:/data
+    networks:
+      - vision-network
+    restart: unless-stopped
+    command: redis-server --requirepass dev-redis-password
+
+  # PostgreSQL para dados
+  postgres:
+    image: postgres:15-alpine
+    container_name: vision-postgres-dev
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=vision_db
+      - POSTGRES_USER=vision_user
+      - POSTGRES_PASSWORD=dev-postgres-password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init_scripts:/docker-entrypoint-initdb.d
+    networks:
+      - vision-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vision_user -d vision_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Prometheus para métricas
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: vision-prometheus-dev
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - vision-network
+    restart: unless-stopped
+
+  # Grafana para visualização
+  grafana:
+    image: grafana/grafana:latest
+    container_name: vision-grafana-dev
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./monitoring/grafana:/etc/grafana/provisioning
+      - grafana_data:/var/lib/grafana
+    networks:
+      - vision-network
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+  # Elasticsearch para logs
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+    container_name: vision-elasticsearch-dev
+    ports:
+      - "9200:9200"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - vision-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Logstash para processamento de logs
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.8.0
+    container_name: vision-logstash-dev
+    ports:
+      - "5044:5044"
+      - "5000:5000/tcp"
+      - "5000:5000/udp"
+      - "9600:9600"
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+    volumes:
+      - ./monitoring/logstash:/usr/share/logstash/pipeline
+      - ./monitoring/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
+    networks:
+      - vision-network
+    restart: unless-stopped
+    depends_on:
+      - elasticsearch
+
+  # Kibana para visualização de logs
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.8.0
+    container_name: vision-kibana-dev
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    volumes:
+      - ./monitoring/kibana:/usr/share/kibana/config
+    networks:
+      - vision-network
+    restart: unless-stopped
+    depends_on:
+      - elasticsearch
+
+  # Nginx para proxy reverso
+  nginx:
+    image: nginx:alpine
+    container_name: vision-nginx-dev
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+    networks:
+      - vision-network
+    restart: unless-stopped
+    depends_on:
+      - vision-api
+
+volumes:
+  redis_data:
+    driver: local
+  postgres_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+
+networks:
+  vision-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

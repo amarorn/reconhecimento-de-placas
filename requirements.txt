@@ -96,6 +96,10 @@ safety>=2.3.0
 # unittest.mock é parte da biblioteca padrão do Python 3.3+
 freezegun>=1.2.0
 
+# Autenticação e Segurança
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+
 # Relatórios e Cobertura
 coverage>=7.0.0
 

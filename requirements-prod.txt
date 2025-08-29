@@ -17,10 +17,9 @@ structlog>=23.1.0
 
 # Cache e performance
 redis>=5.0.1
-memcached>=1.59.0
 
 # Logs estruturados
-python-json-logger>=2.0.0
+python-json-logger>=0.2.0
 
 # Segurança
 cryptography>=41.0.0

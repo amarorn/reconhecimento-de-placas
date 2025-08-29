@@ -21,7 +21,8 @@ from .detection.yolo_detector import YOLODetector
 from .ocr.text_extractor import TextExtractor
 
 # Configurações
-from ..config.vision_architecture import (
+# Absolute import to sibling top-level package 'config'
+from config.vision_architecture import (
     VisionArchitectureConfig,
     ModelConfig,
     OCRConfig,

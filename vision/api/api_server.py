@@ -8,6 +8,8 @@ Servidor FastAPI com todos os endpoints e configurações.
 import os
 import time
 import logging
+import uuid
+import json
 from datetime import datetime
 from typing import Optional, Dict, Any
 
@@ -54,6 +56,13 @@ except ImportError as e:
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# JSON Encoder customizado para datetime
+class CustomJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        return super().default(obj)
+
 # =============================================================================
 # CONFIGURAÇÕES DA API
 # =============================================================================
@@ -84,12 +93,16 @@ class VisionAPI:
         title: str = "Vision API",
         description: str = "API REST para visão computacional",
         version: str = "3.0.0",
-        debug: bool = False
+        debug: bool = None
     ):
         self.title = title
         self.description = description
         self.version = version
-        self.debug = debug
+        # Usar variável de ambiente DEBUG se não especificado
+        if debug is None:
+            self.debug = os.getenv("DEBUG", "false").lower() == "true"
+        else:
+            self.debug = debug
         self.start_time = time.time()
         
         # Criar aplicação FastAPI
@@ -245,13 +258,13 @@ class VisionAPI:
             error_response = ErrorResponse(
                 error_code=f"HTTP_{exc.status_code}",
                 error_message=exc.detail,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.utcnow().isoformat(),
                 request_id=request.headers.get("X-Request-ID", "unknown")
             )
             
             return JSONResponse(
                 status_code=exc.status_code,
-                content=error_response.dict()
+                content=json.loads(json.dumps(error_response.dict(), cls=CustomJSONEncoder))
             )
         
         @self.app.exception_handler(Exception)
@@ -261,14 +274,14 @@ class VisionAPI:
             error_response = ErrorResponse(
                 error_code="INTERNAL_ERROR",
                 error_message="Erro interno do servidor",
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.utcnow().isoformat(),
                 request_id=request.headers.get("X-Request-ID", "unknown"),
                 details={"exception_type": type(exc).__name__}
             )
             
             return JSONResponse(
                 status_code=500,
-                content=error_response.dict()
+                content=json.loads(json.dumps(error_response.dict(), cls=CustomJSONEncoder))
             )
     
     def _setup_events(self):
