@@ -1,0 +1,83 @@
+# Dockerfile para Desenvolvimento - Arquitetura de Visão Computacional
+# ===================================================================
+
+# Imagem base Python 3.9 slim
+FROM python:3.9-slim
+
+# Metadados da imagem
+LABEL maintainer="Equipe de Desenvolvimento"
+LABEL version="4.0.0-dev"
+LABEL description="Arquitetura de Visão Computacional - Container de Desenvolvimento"
+
+# Variáveis de ambiente
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONPATH=/app
+ENV PIP_NO_CACHE_DIR=1
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+ENV ENVIRONMENT=development
+
+# Configurações do sistema
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
+# Instalar dependências do sistema
+RUN apt-get update && apt-get install -y \
+    # Dependências básicas
+    curl \
+    wget \
+    git \
+    vim \
+    htop \
+    procps \
+    # Dependências de visão computacional
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libgomp1 \
+    libgthread-2.0-0 \
+    # Dependências de OCR
+    tesseract-ocr \
+    tesseract-ocr-por \
+    # Dependências de rede
+    netcat-openbsd \
+    # Dependências de segurança
+    ca-certificates \
+    # Dependências de desenvolvimento
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Criar usuário não-root para segurança
+RUN groupadd -r vision && useradd -r -g vision vision
+
+# Criar diretórios de trabalho
+WORKDIR /app
+
+# Copiar arquivos de requirements primeiro (para cache de layers)
+COPY requirements*.txt ./
+
+# Instalar dependências Python (incluindo desenvolvimento)
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir -r requirements-dev.txt
+
+# Copiar código da aplicação
+COPY . .
+
+# Configurar permissões
+RUN chown -R vision:vision /app && \
+    chmod -R 755 /app
+
+# Mudar para usuário não-root
+USER vision
+
+# Expor portas
+EXPOSE 8000 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Comando padrão com reload
+CMD ["python", "-m", "vision.api.api_server", "--host", "0.0.0.0", "--port", "8000", "--reload"]
