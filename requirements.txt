@@ -1,16 +1,151 @@
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-sqlalchemy==2.0.23
-psycopg2-binary==2.9.9
-pymongo==4.6.0
-redis==5.0.1
-elasticsearch==8.11.0
-pydantic==2.5.0
-python-multipart==0.0.6
-opencv-python==4.8.1.78
-numpy==1.24.3
-Pillow==10.1.0
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
-python-dotenv==1.0.0
-httpx==0.25.2
+# Requirements Unificados - Arquitetura Refatorada de Visão Computacional
+# =====================================================================
+# Este arquivo contém todas as dependências necessárias para o projeto completo
+# Inclui: Core, Fase 1 (Testes), Fase 2 (Dashboard), e dependências opcionais
+
+# =============================================================================
+# CORE - Dependências Principais da Arquitetura
+# =============================================================================
+
+# Framework Web Principal
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+
+# Visão Computacional
+opencv-python>=4.8.1
+numpy>=1.24.0
+Pillow>=10.1.0
+
+# Machine Learning e Deep Learning
+torch>=2.0.0
+torchvision>=0.15.0
+ultralytics>=8.0.0
+
+# OCR Engines
+paddlepaddle>=2.5.0
+paddleocr>=2.7.0
+easyocr>=1.7.0
+pytesseract>=0.3.10
+
+# Transformers (opcional)
+transformers>=4.30.0
+datasets>=2.14.0
+
+# Processamento de dados
+pandas>=2.0.0
+scikit-image>=0.21.0
+scipy>=1.11.0
+
+# Visualização
+matplotlib>=3.7.0
+seaborn>=0.12.0
+plotly>=5.17.0
+
+# Banco de dados
+sqlalchemy>=2.0.23
+psycopg2-binary>=2.9.9
+pymongo>=4.6.0
+redis>=5.0.1
+
+# Cache e otimização
+joblib>=1.3.0
+tqdm>=4.66.0
+
+# =============================================================================
+# FASE 2 - Dashboard e Monitoramento
+# =============================================================================
+
+# WebSockets e comunicação em tempo real
+websockets>=12.0
+
+# Métricas e monitoramento do sistema
+psutil>=5.9.0
+
+# Logging e configuração
+python-json-logger>=2.0.0
+python-dotenv>=1.0.0
+
+# Validação de dados
+pydantic>=2.5.0
+
+# Utilitários
+click>=8.1.0
+rich>=13.4.0
+
+# =============================================================================
+# FASE 1 - Testes e Qualidade de Código
+# =============================================================================
+
+# Framework de Testes
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-asyncio>=0.21.0
+pytest-benchmark>=4.0.0
+pytest-mock>=3.10.0
+pytest-html>=3.1.0
+pytest-xdist>=3.0.0
+
+# Ferramentas de Qualidade de Código
+black>=23.7.0
+flake8>=6.0.0
+mypy>=1.5.0
+bandit>=1.7.0
+safety>=2.3.0
+
+# Mocks e Stubs
+unittest-mock>=1.0.0
+freezegun>=1.2.0
+
+# Relatórios e Cobertura
+coverage>=7.0.0
+
+# =============================================================================
+# DESENVOLVIMENTO E PRODUÇÃO
+# =============================================================================
+
+# Logging e monitoramento
+structlog>=23.1.0
+prometheus-client>=0.17.0
+
+# Documentação
+sphinx>=7.1.0
+sphinx-rtd-theme>=1.3.0
+
+# Testes de API
+httpx>=0.25.0  # Para testar APIs FastAPI
+websocket-client>=1.6.0  # Para testar WebSockets
+
+# =============================================================================
+# DEPENDÊNCIAS OPCIONAIS PARA PRODUÇÃO
+# =============================================================================
+# Descomente conforme necessário:
+
+# Métricas avançadas
+# influxdb-client>=1.36.0   # Para armazenamento de séries temporais
+
+# Containerização
+# docker>=6.0.0             # Para operações Docker
+# kubernetes>=28.0.0        # Para operações Kubernetes
+
+# Monitoramento avançado
+# grafana-api>=1.0.0        # Para integração com Grafana
+# elasticsearch>=8.0.0      # Para logs centralizados
+
+# =============================================================================
+# NOTAS DE INSTALAÇÃO
+# =============================================================================
+
+# Para instalação básica (core + fase 2):
+# pip install -r requirements.txt
+
+# Para instalação apenas do core:
+# pip install fastapi uvicorn opencv-python numpy Pillow torch ultralytics
+
+# Para instalação apenas dos testes:
+# pip install pytest pytest-cov pytest-asyncio black flake8 mypy
+
+# Para desenvolvimento completo:
+# pip install -r requirements.txt[dev]
+
+# Para produção:
+# pip install -r requirements.txt --no-dev

@@ -1,0 +1,35 @@
+# Requirements para Produção - Arquitetura Refatorada
+# ===================================================
+
+# Incluir dependências core e fase 2 (sem ferramentas de desenvolvimento)
+-r requirements.txt
+
+# Remover dependências de desenvolvimento
+# pytest, black, flake8, mypy, etc. não são incluídos
+
+# Dependências específicas para produção
+gunicorn>=21.2.0
+uvloop>=0.17.0  # Para melhor performance no Linux
+
+# Monitoramento em produção
+prometheus-client>=0.17.0
+structlog>=23.1.0
+
+# Cache e performance
+redis>=5.0.1
+memcached>=1.59.0
+
+# Logs estruturados
+python-json-logger>=2.0.0
+
+# Segurança
+cryptography>=41.0.0
+passlib>=1.7.4
+
+# Métricas avançadas (opcional)
+# influxdb-client>=1.36.0
+# grafana-api>=1.0.0
+
+# Containerização (opcional)
+# docker>=6.0.0
+# kubernetes>=28.0.0
