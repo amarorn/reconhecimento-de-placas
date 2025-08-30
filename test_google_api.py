@@ -1,28 +1,18 @@
-#!/usr/bin/env python3
-"""
-Script para testar a API do Google Custom Search
-===============================================
 
-Este script testa diferentes configurações da API para identificar o problema.
-"""
 
 import requests
 import json
 import time
 
 def test_google_api():
-    """Testa a API do Google com diferentes configurações"""
     
-    # Sua chave de API
     api_key = "AIzaSyDAFvNVY8BP2Vw7IIxBkKA3jJNXCJISHmE"
     
-    # Diferentes Search Engine IDs para testar
     search_engines = {
         "Novo": "b482e980c4b39432f",
         "Antigo": "017576662512468239146:omuauf_lfve"
     }
     
-    # Queries para testar
     test_queries = [
         "brazilian traffic signs",
         "placa pare brasil",
@@ -40,7 +30,6 @@ def test_google_api():
         for query in test_queries:
             print(f"\n   📝 Query: {query}")
             
-            # URL da API
             url = "https://www.googleapis.com/customsearch/v1"
             
             params = {
@@ -71,7 +60,6 @@ def test_google_api():
                     print(f"   ❌ Erro HTTP: {response.status_code}")
                     print(f"      Resposta: {response.text[:200]}...")
                 
-                # Aguardar entre consultas
                 time.sleep(1)
                 
             except Exception as e:
@@ -92,7 +80,6 @@ def test_google_api():
     print("6. Atualize o script principal")
 
 def show_search_engine_guide():
-    """Mostra guia para criar Search Engine"""
     print("\n📋 GUIA PARA CRIAR SEARCH ENGINE:")
     print("=" * 50)
     print("1. Acesse: https://cse.google.com/cse/")

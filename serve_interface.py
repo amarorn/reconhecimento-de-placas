@@ -1,8 +1,4 @@
-#!/usr/bin/env python3
-"""
-Servidor HTTP simples para a interface web
-==========================================
-"""
+
 
 import http.server
 import socketserver
@@ -16,31 +12,26 @@ PORT = 3000
 INTERFACE_FILE = "vision_interface.html"
 
 class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
-    """Handler customizado para servir a interface"""
     
     def do_GET(self):
         if self.path == '/' or self.path == '':
-            # Servir a interface principal
             self.path = f'/{INTERFACE_FILE}'
         
         return super().do_GET()
     
     def end_headers(self):
-        # Adicionar headers CORS
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', '*')
         super().end_headers()
 
 def start_server():
-    """Inicia o servidor HTTP"""
     try:
         with socketserver.TCPServer(("", PORT), CustomHTTPRequestHandler) as httpd:
             print(f"🌐 Servidor iniciado em http://localhost:{PORT}")
             print(f"📁 Servindo arquivo: {INTERFACE_FILE}")
             print("🔗 Abrindo navegador...")
             
-            # Abrir navegador após 2 segundos
             threading.Timer(2.0, lambda: webbrowser.open(f'http://localhost:{PORT}')).start()
             
             print(f"✅ Interface disponível em: http://localhost:{PORT}")
@@ -54,7 +45,6 @@ def start_server():
         print(f"❌ Erro ao iniciar servidor: {e}")
 
 def check_files():
-    """Verifica se os arquivos necessários existem"""
     if not Path(INTERFACE_FILE).exists():
         print(f"❌ Arquivo {INTERFACE_FILE} não encontrado")
         return False
@@ -63,7 +53,6 @@ def check_files():
     return True
 
 def main():
-    """Função principal"""
     print("🚀 Iniciando Interface Web - Visão Computacional")
     print("=" * 50)
     

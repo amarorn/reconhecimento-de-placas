@@ -1,0 +1,325 @@
+#!/usr/bin/env python3
+"""
+Routers da API REST - Arquitetura de Visão Computacional
+========================================================
+
+Este módulo define todos os routers da API organizados por funcionalidade.
+"""
+
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
+from fastapi.responses import JSONResponse, StreamingResponse
+from typing import List, Optional, Dict, Any, Union
+import logging
+import time
+import base64
+import os
+import requests
+import numpy as np
+import cv2
+from datetime import datetime
+
+from .models import (
+    DetectionRequest, DetectionResponse, 
+    SignalPlateRequest, SignalPlateResponse,
+    VehiclePlateRequest, VehiclePlateResponse,
+    HealthResponse, PipelineStatus,
+    BaseRequest, BaseResponse, BoundingBox, DetectionResult
+)
+from .auth import get_current_user, User
+
+logger = logging.getLogger(__name__)
+
+
+# Router de Saúde
+health_router = APIRouter(prefix="/health", tags=["Health"])
+
+@health_router.get("/", response_model=HealthResponse)
+async def health_check():
+    return {
+        "status": "healthy",
+        "timestamp": datetime.utcnow(),
+        "version": "1.0.0",
+        "uptime": time.time(),
+        "components": {
+            "api": "operational",
+            "database": "operational",
+            "cache": "operational"
+        },
+        "memory_usage": 0.25,
+        "cpu_usage": 0.15
+    }
+
+
+# Router de Visão Computacional
+vision_router = APIRouter(prefix="/api/v1/vision", tags=["Vision"])
+
+class MockPipeline:
+    def get_last_processing_time(self):
+        return 0.5
+    
+    def get_total_processed_images(self):
+        return 100
+    
+    def get_average_processing_time(self):
+        return 0.3
+    
+    def get_memory_usage(self):
+        return 0.25
+    
+    def get_cpu_usage(self):
+        return 0.15
+    
+    def process_upload(self, file):
+        return f"img_{int(time.time())}"
+
+pipeline = MockPipeline()
+
+@vision_router.post("/detect/signal-plates", response_model=SignalPlateResponse)
+async def detect_signal_plates(
+    request: SignalPlateRequest,
+    current_user: User = Depends(get_current_user)
+):
+    try:
+        logger.info(f"Detecção de placas de sinalização solicitada por {current_user.username}")
+        
+        mock_detections = [
+            {
+                "bbox": {"x1": 150, "y1": 200, "x2": 300, "y2": 250},
+                "confidence": 0.92,
+                "plate_type": "stop",
+                "text": "PARE"
+            }
+        ]
+        
+        return SignalPlateResponse(
+            success=True,
+            message="Placas de sinalização detectadas com sucesso",
+            timestamp=datetime.utcnow(),
+            image_id=request.image_id,
+            detections=mock_detections,
+            total_detections=len(mock_detections)
+        )
+        
+    except Exception as e:
+        logger.error(f"Erro na detecção de placas de sinalização: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@vision_router.post("/detect/vehicle-plates", response_model=VehiclePlateResponse)
+async def detect_vehicle_plates(
+    request: VehiclePlateRequest,
+    current_user: User = Depends(get_current_user)
+):
+    try:
+        logger.info(f"Detecção de placas de veículos solicitada por {current_user.username}")
+        
+        mock_detections = [
+            {
+                "vehicle_bbox": {"x1": 100, "y1": 150, "x2": 400, "y2": 300},
+                "plate_bbox": {"x1": 150, "y1": 200, "x2": 300, "y2": 250},
+                "vehicle_confidence": 0.95,
+                "plate_confidence": 0.92,
+                "plate_info": {
+                    "bbox": {"x1": 150, "y1": 200, "x2": 300, "y2": 250},
+                    "confidence": 0.92,
+                    "plate_number": "ABC1234",
+                    "vehicle_type": "car",
+                    "country": "Brasil",
+                    "state": "SP"
+                }
+            }
+        ]
+        
+        return VehiclePlateResponse(
+            success=True,
+            message="Placas de veículos detectadas com sucesso",
+            timestamp=datetime.utcnow(),
+            image_id=request.image_id,
+            detections=mock_detections,
+            total_vehicles=len(mock_detections),
+            total_plates=len(mock_detections)
+        )
+        
+    except Exception as e:
+        logger.error(f"Erro na detecção de placas de veículos: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@vision_router.post("/detect/general", response_model=DetectionResponse)
+async def detect_general(
+    request: DetectionRequest,
+    current_user: User = Depends(get_current_user)
+):
+    try:
+        logger.info(f"Detecção geral solicitada por {current_user.username}")
+        
+        mock_detections = [
+            DetectionResult(
+                bbox=BoundingBox(x1=150, y1=200, x2=300, y2=250),
+                confidence=0.92,
+                class_id=1,
+                class_name="object"
+            )
+        ]
+        
+        return DetectionResponse(
+            success=True,
+            message="Detecção geral realizada com sucesso",
+            timestamp=datetime.utcnow(),
+            image_id=request.image_id,
+            detections=mock_detections,
+            total_detections=len(mock_detections)
+        )
+        
+    except Exception as e:
+        logger.error(f"Erro na detecção geral: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@vision_router.post("/upload")
+async def upload_image(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    try:
+        logger.info(f"Upload de imagem solicitado por {current_user.username}")
+        
+        file_id = pipeline.process_upload(file)
+        
+        return {
+            "file_id": file_id,
+            "filename": file.filename,
+            "file_size": file.size,
+            "upload_time": datetime.utcnow(),
+            "status": "success"
+        }
+        
+    except Exception as e:
+        logger.error(f"Erro no upload: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Router de Monitoramento
+monitoring_router = APIRouter(prefix="/api/v1/monitoring", tags=["Monitoring"])
+
+@monitoring_router.get("/status")
+async def get_pipeline_status(
+    current_user: User = Depends(get_current_user)
+):
+    try:
+        return PipelineStatus(
+            is_running=True,
+            current_task="processing",
+            progress=0.75,
+            total_processed=100,
+            errors=[]
+        )
+    except Exception as e:
+        logger.error(f"Erro ao obter status do pipeline: {e}")
+        raise HTTPException(status_code=500, detail="Erro interno do servidor")
+
+
+@monitoring_router.get("/metrics")
+async def get_metrics(
+    current_user: User = Depends(get_current_user)
+):
+    try:
+        return {
+            "timestamp": datetime.utcnow().isoformat(),
+            "system": {
+                "uptime": time.time(),
+                "memory_usage": 0.25,
+                "cpu_usage": 0.15
+            },
+            "api": {
+                "total_requests": 1000,
+                "successful_requests": 950,
+                "error_requests": 50
+            },
+            "pipeline": {
+                "total_processed": 100,
+                "average_processing_time": 0.3
+            }
+        }
+    except Exception as e:
+        logger.error(f"Erro ao obter métricas: {e}")
+        raise HTTPException(status_code=500, detail="Erro interno do servidor")
+
+
+@monitoring_router.get("/logs")
+async def get_logs(
+    limit: int = 100,
+    current_user: User = Depends(get_current_user)
+):
+    try:
+        mock_logs = [
+            {
+                "timestamp": datetime.utcnow().isoformat(),
+                "level": "INFO",
+                "message": "API iniciada com sucesso"
+            }
+        ]
+        
+        return {
+            "logs": mock_logs[:limit],
+            "total_logs": len(mock_logs),
+            "limit": limit
+        }
+        
+    except Exception as e:
+        logger.error(f"Erro ao obter logs: {e}")
+        raise HTTPException(status_code=500, detail="Erro interno do servidor")
+
+
+# Router de Autenticação
+auth_router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
+
+@auth_router.post("/login")
+async def login(
+    username: str = Form(...),
+    password: str = Form(...)
+):
+    try:
+        if username == "admin" and password == "admin":
+            return {
+                "access_token": "mock_token_12345",
+                "token_type": "bearer",
+                "username": username
+            }
+        else:
+            raise HTTPException(status_code=401, detail="Credenciais inválidas")
+    except Exception as e:
+        logger.error(f"Erro no login: {e}")
+        raise HTTPException(status_code=500, detail="Erro interno do servidor")
+
+
+@auth_router.post("/register")
+async def register(
+    username: str = Form(...),
+    password: str = Form(...),
+    email: str = Form(...)
+):
+    try:
+        return {
+            "message": "Usuário registrado com sucesso",
+            "username": username,
+            "email": email
+        }
+    except Exception as e:
+        logger.error(f"Erro no registro: {e}")
+        raise HTTPException(status_code=500, detail="Erro interno do servidor")
+
+
+@auth_router.get("/profile")
+async def get_profile(
+    current_user: User = Depends(get_current_user)
+):
+    try:
+        return {
+            "username": current_user.username,
+            "email": current_user.email,
+            "is_active": current_user.is_active
+        }
+    except Exception as e:
+        logger.error(f"Erro ao obter informações do usuário: {e}")
+        raise HTTPException(status_code=500, detail="Erro interno do servidor")

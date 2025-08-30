@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+
 
 import os
 import json
@@ -254,9 +254,9 @@ def main():
             preparer.prepare_vehicle_plates_dataset(sys.argv[2])
         else:
             print("Uso:")
-            print("  python prepare_training_data.py sample                    # Criar dataset de exemplo")
-            print("  python prepare_training_data.py signal <source_dir>      # Preparar dataset de sinalização")
-            print("  python prepare_training_data.py vehicle <source_dir>     # Preparar dataset de veículos")
+            print("  python prepare_training_data.py sample
+            print("  python prepare_training_data.py signal <source_dir>
+            print("  python prepare_training_data.py vehicle <source_dir>
     else:
         print("Criando dataset de exemplo...")
         preparer.create_sample_dataset()

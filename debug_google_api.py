@@ -1,18 +1,13 @@
-#!/usr/bin/env python3
-"""
-Script para debugar a API do Google e ver exatamente o que está retornando
-"""
+
 
 import requests
 import json
 
 def debug_google_api():
-    """Debuga a API do Google para entender o problema"""
     
     api_key = "AIzaSyDAFvNVY8BP2Vw7IIxBkKA3jJNXCJISHmE"
     search_engine_id = "b482e980c4b39432f"
     
-    # Query que sabemos que funcionou no teste
     query = "stop sign brazil"
     
     print(f"🔍 Debugando query: {query}")

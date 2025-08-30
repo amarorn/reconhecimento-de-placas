@@ -1,132 +1,60 @@
+#!/usr/bin/env python3
 """
-Servidor Principal da API REST - Arquitetura de Visão Computacional
-==================================================================
+Servidor da API REST - Arquitetura de Visão Computacional
+=========================================================
 
-Servidor FastAPI com todos os endpoints e configurações.
+Este módulo implementa o servidor FastAPI principal com todos os endpoints
+e funcionalidades de visão computacional.
 """
 
 import os
 import time
 import logging
-import uuid
-import json
 from datetime import datetime
 from typing import Optional, Dict, Any
 
-# Dependências FastAPI
 try:
-    from fastapi import FastAPI, Request, HTTPException
+    from fastapi import FastAPI, Request, Response
     from fastapi.middleware.cors import CORSMiddleware
     from fastapi.middleware.trustedhost import TrustedHostMiddleware
     from fastapi.responses import JSONResponse
-    from fastapi.openapi.utils import get_openapi
-    import uvicorn
-except ImportError as e:
-    print(f"⚠️ Dependências FastAPI não disponíveis: {e}")
-    print("Instale com: pip install fastapi uvicorn")
+    from fastapi.exceptions import RequestValidationError
+    from starlette.exceptions import HTTPException as StarletteHTTPException
+except ImportError:
     FastAPI = None
-    Request = None
-    HTTPException = Exception
-    CORSMiddleware = None
-    TrustedHostMiddleware = None
-    JSONResponse = None
-    get_openapi = None
-    uvicorn = None
 
-# Importar componentes da API
-try:
-    from .endpoints import (
-        health_router,
-        vision_router,
-        monitoring_router,
-        auth_router
-    )
-    from .auth import auth_manager
-    from .models import ErrorResponse
-except ImportError as e:
-    print(f"⚠️ Componentes da API não disponíveis: {e}")
-    health_router = None
-    vision_router = None
-    monitoring_router = None
-    auth_router = None
-    auth_manager = None
-    ErrorResponse = None
+from .routers import (
+    health_router, vision_router, 
+    monitoring_router, auth_router
+)
 
-# Configuração de logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# JSON Encoder customizado para datetime
-class CustomJSONEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, datetime):
-            return obj.isoformat()
-        return super().default(obj)
+DEFAULT_HOST = os.getenv("HOST", "0.0.0.0")
+DEFAULT_PORT = int(os.getenv("PORT", "8000"))
+DEBUG = os.getenv("DEBUG", "false").lower() == "true"
 
-# =============================================================================
-# CONFIGURAÇÕES DA API
-# =============================================================================
-
-# Configurações padrão
-DEFAULT_HOST = os.getenv("API_HOST", "0.0.0.0")
-DEFAULT_PORT = int(os.getenv("API_PORT", "8000"))
-DEFAULT_RELOAD = os.getenv("API_RELOAD", "false").lower() == "true"
-
-# Configurações de segurança
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*").split(",")
 
-# Configurações de rate limiting
 RATE_LIMIT_ENABLED = os.getenv("RATE_LIMIT_ENABLED", "true").lower() == "true"
 RATE_LIMIT_REQUESTS = int(os.getenv("RATE_LIMIT_REQUESTS", "100"))
 RATE_LIMIT_WINDOW = int(os.getenv("RATE_LIMIT_WINDOW", "60"))
 
-# =============================================================================
-# CLASSE PRINCIPAL DA API
-# =============================================================================
 
 class VisionAPI:
-    """Classe principal da API de visão computacional"""
-    
-    def __init__(
-        self,
-        title: str = "Vision API",
-        description: str = "API REST para visão computacional",
-        version: str = "3.0.0",
-        debug: bool = None
-    ):
+    def __init__(self, title: str = "API de Visão Computacional", 
+                 description: str = "API para detecção e reconhecimento de placas e sinais de trânsito",
+                 version: str = "1.0.0",
+                 debug: bool = DEBUG):
         self.title = title
         self.description = description
         self.version = version
-        # Usar variável de ambiente DEBUG se não especificado
-        if debug is None:
-            self.debug = os.getenv("DEBUG", "false").lower() == "true"
-        else:
-            self.debug = debug
+        self.debug = debug
         self.start_time = time.time()
+        self.app = None
         
-        # Criar aplicação FastAPI
-        self.app = self._create_app()
-        
-        # Configurar middlewares
-        self._setup_middlewares()
-        
-        # Configurar rotas
-        self._setup_routes()
-        
-        # Configurar handlers de erro
-        self._setup_error_handlers()
-        
-        # Configurar eventos
-        self._setup_events()
-        
-        # Configurar OpenAPI
-        self._setup_openapi()
-        
-        logger.info(f"API '{self.title}' inicializada com sucesso")
-    
     def _create_app(self) -> FastAPI:
-        """Cria aplicação FastAPI"""
         if not FastAPI:
             raise RuntimeError("FastAPI não está disponível")
         
@@ -135,74 +63,58 @@ class VisionAPI:
             description=self.description,
             version=self.version,
             debug=self.debug,
-            docs_url="/docs" if self.debug else None,
-            redoc_url="/redoc" if self.debug else None,
-            openapi_url="/openapi.json" if self.debug else None
+            docs_url="/docs",
+            redoc_url="/redoc",
+            openapi_url="/openapi.json"
         )
     
     def _setup_middlewares(self):
-        """Configura middlewares da aplicação"""
         if not self.app:
             return
+            
+        self.app.add_middleware(
+            CORSMiddleware,
+            allow_origins=CORS_ORIGINS,
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
         
-        # CORS
-        if CORS_ORIGINS:
-            self.app.add_middleware(
-                CORSMiddleware,
-                allow_origins=CORS_ORIGINS,
-                allow_credentials=True,
-                allow_methods=["*"],
-                allow_headers=["*"],
-            )
-        
-        # Trusted Hosts
-        if ALLOWED_HOSTS and ALLOWED_HOSTS != ["*"]:
+        if ALLOWED_HOSTS != ["*"]:
             self.app.add_middleware(
                 TrustedHostMiddleware,
                 allowed_hosts=ALLOWED_HOSTS
             )
         
-        # Rate Limiting (simulado)
-        if RATE_LIMIT_ENABLED:
-            self._setup_rate_limiting()
-        
-        # Logging
-        self._setup_logging_middleware()
+        logger.info("Middlewares configurados")
     
     def _setup_rate_limiting(self):
-        """Configura rate limiting"""
-        # TODO: Implementar rate limiting real
+        if not self.app or not RATE_LIMIT_ENABLED:
+            return
+            
         logger.info("Rate limiting configurado (simulado)")
     
     def _setup_logging_middleware(self):
-        """Configura middleware de logging"""
-        @self.app.middleware("http")
-        async def log_requests(request: Request, call_next):
-            start_time = time.time()
-            
-            # Log da requisição
-            logger.info(f"Requisição: {request.method} {request.url}")
-            
-            # Processar requisição
-            response = await call_next(request)
-            
-            # Calcular tempo de resposta
-            process_time = time.time() - start_time
-            
-            # Log da resposta
-            logger.info(f"Resposta: {response.status_code} em {process_time:.3f}s")
-            
-            # Adicionar header de tempo de processamento
-            response.headers["X-Process-Time"] = str(process_time)
-            
-            return response
-    
-    def _setup_routes(self):
-        """Configura rotas da aplicação"""
         if not self.app:
             return
         
-        # Adicionar routers
+        @self.app.middleware("http")
+        async def log_requests(request: Request, call_next):
+            start_time = time.time()
+            response = await call_next(request)
+            process_time = time.time() - start_time
+            
+            logger.info(
+                f"{request.method} {request.url.path} - "
+                f"Status: {response.status_code} - "
+                f"Tempo: {process_time:.3f}s"
+            )
+            return response
+    
+    def _setup_routes(self):
+        if not self.app:
+            return
+        
         if health_router:
             self.app.include_router(health_router)
             logger.info("Router de saúde adicionado")
@@ -219,7 +131,6 @@ class VisionAPI:
             self.app.include_router(auth_router)
             logger.info("Router de autenticação adicionado")
         
-        # Rota raiz
         @self.app.get("/")
         async def root():
             return {
@@ -230,7 +141,6 @@ class VisionAPI:
                 "uptime": time.time() - self.start_time
             }
         
-        # Rota de informações da API
         @self.app.get("/info")
         async def api_info():
             return {
@@ -249,119 +159,127 @@ class VisionAPI:
             }
     
     def _setup_error_handlers(self):
-        """Configura handlers de erro"""
         if not self.app:
             return
         
-        @self.app.exception_handler(HTTPException)
-        async def http_exception_handler(request: Request, exc: HTTPException):
-            error_response = ErrorResponse(
-                error_code=f"HTTP_{exc.status_code}",
-                error_message=exc.detail,
-                timestamp=datetime.utcnow().isoformat(),
-                request_id=request.headers.get("X-Request-ID", "unknown")
+        @self.app.exception_handler(RequestValidationError)
+        async def validation_exception_handler(request: Request, exc: RequestValidationError):
+            return JSONResponse(
+                status_code=422,
+                content={
+                    "detail": "Erro de validação dos dados",
+                    "errors": exc.errors()
+                }
             )
-            
+        
+        @self.app.exception_handler(StarletteHTTPException)
+        async def http_exception_handler(request: Request, exc: StarletteHTTPException):
             return JSONResponse(
                 status_code=exc.status_code,
-                content=json.loads(json.dumps(error_response.dict(), cls=CustomJSONEncoder))
+                content={
+                    "detail": exc.detail,
+                    "status_code": exc.status_code
+                }
             )
         
         @self.app.exception_handler(Exception)
         async def general_exception_handler(request: Request, exc: Exception):
-            logger.error(f"Erro não tratado: {exc}")
-            
-            error_response = ErrorResponse(
-                error_code="INTERNAL_ERROR",
-                error_message="Erro interno do servidor",
-                timestamp=datetime.utcnow().isoformat(),
-                request_id=request.headers.get("X-Request-ID", "unknown"),
-                details={"exception_type": type(exc).__name__}
-            )
-            
+            logger.error(f"Erro não tratado: {exc}", exc_info=True)
             return JSONResponse(
                 status_code=500,
-                content=json.loads(json.dumps(error_response.dict(), cls=CustomJSONEncoder))
+                content={
+                    "detail": "Erro interno do servidor",
+                    "status_code": 500
+                }
             )
     
     def _setup_events(self):
-        """Configura eventos da aplicação"""
         if not self.app:
             return
         
         @self.app.on_event("startup")
         async def startup_event():
-            logger.info(f"🚀 {self.title} iniciando...")
-            logger.info(f"📊 Versão: {self.version}")
-            logger.info(f"🔧 Debug: {self.debug}")
-            logger.info(f"🌐 Host: {DEFAULT_HOST}")
-            logger.info(f"🔌 Porta: {DEFAULT_PORT}")
+            logger.info(f"{self.title} iniciando...")
+            logger.info(f"Versão: {self.version}")
+            logger.info(f"Debug: {self.debug}")
+            logger.info(f"Host: {DEFAULT_HOST}")
+            logger.info(f"Porta: {DEFAULT_PORT}")
             
-            # Verificar componentes
             self._check_components()
         
         @self.app.on_event("shutdown")
         async def shutdown_event():
-            logger.info(f"🛑 {self.title} parando...")
+            logger.info(f"{self.title} parando...")
             
-            # Limpeza se necessário
             self._cleanup()
     
     def _check_components(self):
-        """Verifica status dos componentes"""
-        logger.info("🔍 Verificando componentes...")
-        
-        components_status = {
-            "health_router": health_router is not None,
-            "vision_router": vision_router is not None,
-            "monitoring_router": monitoring_router is not None,
-            "auth_router": auth_router is not None,
-            "auth_manager": auth_manager is not None
-        }
-        
-        for component, status in components_status.items():
-            status_icon = "✅" if status else "❌"
-            logger.info(f"   {status_icon} {component}: {'Disponível' if status else 'Indisponível'}")
-        
-        # Verificar dependências
-        self._check_dependencies()
-    
-    def _check_dependencies(self):
-        """Verifica dependências do sistema"""
-        logger.info("📦 Verificando dependências...")
+        logger.info("Verificando dependências...")
         
         try:
             import fastapi
-            logger.info("   ✅ FastAPI disponível")
+            logger.info("   FastAPI disponível")
         except ImportError:
-            logger.warning("   ⚠️ FastAPI não disponível")
+            logger.warning("   FastAPI não disponível")
         
         try:
             import uvicorn
-            logger.info("   ✅ Uvicorn disponível")
+            logger.info("   Uvicorn disponível")
         except ImportError:
-            logger.warning("   ⚠️ Uvicorn não disponível")
+            logger.warning("   Uvicorn não disponível")
         
         try:
             import numpy
-            logger.info("   ✅ NumPy disponível")
+            logger.info("   NumPy disponível")
         except ImportError:
-            logger.warning("   ⚠️ NumPy não disponível")
+            logger.warning("   NumPy não disponível")
         
         try:
             import cv2
-            logger.info("   ✅ OpenCV disponível")
+            logger.info("   OpenCV disponível")
         except ImportError:
-            logger.warning("   ⚠️ OpenCV não disponível")
+            logger.warning("   OpenCV não disponível")
+        
+        try:
+            import torch
+            logger.info("   PyTorch disponível")
+        except ImportError:
+            logger.warning("   PyTorch não disponível")
+        
+        logger.info("Verificação de dependências concluída")
+    
+    def _check_dependencies(self):
+        required_modules = [
+            "fastapi", "uvicorn", "numpy", "cv2", "torch"
+        ]
+        
+        missing_modules = []
+        for module in required_modules:
+            try:
+                __import__(module)
+            except ImportError:
+                missing_modules.append(module)
+        
+        if missing_modules:
+            logger.warning(f"Módulos não disponíveis: {missing_modules}")
+            return False
+        
+        return True
     
     def _cleanup(self):
-        """Executa limpeza na parada"""
-        logger.info("🧹 Executando limpeza...")
-        # TODO: Implementar limpeza de recursos
+        logger.info("Limpando recursos...")
+        
+        try:
+            if hasattr(self, 'vision_pipeline'):
+                self.vision_pipeline.cleanup()
+                logger.info("Pipeline de visão limpo")
+        except Exception as e:
+            logger.error(f"Erro ao limpar pipeline: {e}")
+        
+        logger.info("Limpeza concluída")
     
     def _setup_openapi(self):
-        """Configura documentação OpenAPI"""
-        if not self.app or not get_openapi:
+        if not self.app:
             return
         
         def custom_openapi():
@@ -375,107 +293,62 @@ class VisionAPI:
                 routes=self.app.routes,
             )
             
-            # Personalizar esquema OpenAPI
-            openapi_schema["info"]["x-logo"] = {
-                "url": "https://fastapi.tiangolo.com/img/logo-margin/logo-teal.png"
-            }
-            
             self.app.openapi_schema = openapi_schema
             return self.app.openapi_schema
         
         self.app.openapi = custom_openapi
     
-    def get_app(self) -> FastAPI:
-        """Retorna a aplicação FastAPI"""
+    def initialize(self) -> FastAPI:
+        logger.info("Inicializando API...")
+        
+        self.app = self._create_app()
+        self._setup_middlewares()
+        self._setup_rate_limiting()
+        self._setup_logging_middleware()
+        self._setup_routes()
+        self._setup_error_handlers()
+        self._setup_events()
+        self._setup_openapi()
+        
+        logger.info("API inicializada com sucesso")
         return self.app
-    
-    def run(
-        self,
-        host: str = None,
-        port: int = None,
-        reload: bool = None,
-        **kwargs
-    ):
-        """Executa o servidor da API"""
-        if not uvicorn:
-            raise RuntimeError("Uvicorn não está disponível")
-        
-        host = host or DEFAULT_HOST
-        port = port or DEFAULT_PORT
-        reload = reload if reload is not None else DEFAULT_RELOAD
-        
-        logger.info(f"🚀 Iniciando servidor em {host}:{port}")
-        
-        uvicorn.run(
-            "vision.api.api_server:app",
-            host=host,
-            port=port,
-            reload=reload,
-            **kwargs
-        )
 
-# =============================================================================
-# FUNÇÕES DE UTILIDADE
-# =============================================================================
 
-def create_app(
-    title: str = "Vision API",
-    description: str = "API REST para visão computacional",
-    version: str = "3.0.0",
-    debug: bool = False
-) -> FastAPI:
-    """Cria aplicação FastAPI configurada"""
-    api = VisionAPI(title, description, version, debug)
-    return api.get_app()
-
-def start_api_server(
-    host: str = DEFAULT_HOST,
-    port: int = DEFAULT_PORT,
-    reload: bool = DEFAULT_RELOAD,
-    **kwargs
-):
-    """Inicia o servidor da API"""
+def get_app() -> FastAPI:
     api = VisionAPI()
-    api.run(host=host, port=port, reload=reload, **kwargs)
+    return api.initialize()
 
-# =============================================================================
-# INSTÂNCIA GLOBAL
-# =============================================================================
 
-# Criar instância global da API
-vision_api = VisionAPI()
-
-# Obter aplicação para uso externo
-app = vision_api.get_app()
-
-# =============================================================================
-# CONFIGURAÇÕES ADICIONAIS
-# =============================================================================
-
-# Configurar logging para a aplicação
-if app:
-    # Adicionar middleware de logging adicional
-    @app.middleware("http")
-    async def add_process_time_header(request: Request, call_next):
-        start_time = time.time()
-        response = await call_next(request)
-        process_time = time.time() - start_time
-        response.headers["X-Process-Time"] = str(process_time)
-        return response
+def run(host: str = DEFAULT_HOST, port: int = DEFAULT_PORT, 
+        debug: bool = DEBUG, reload: bool = False):
+    import uvicorn
     
-    # Adicionar middleware de request ID
-    @app.middleware("http")
-    async def add_request_id_header(request: Request, call_next):
-        request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
-        request.state.request_id = request_id
-        response = await call_next(request)
-        response.headers["X-Request-ID"] = request_id
-        return response
+    if not uvicorn:
+        raise RuntimeError("Uvicorn não está disponível")
+    
+    api = VisionAPI(debug=debug)
+    app = api.initialize()
+    
+    uvicorn.run(
+        app,
+        host=host,
+        port=port,
+        debug=debug,
+        reload=reload
+    )
 
-# =============================================================================
-# EXECUÇÃO DIRETA
-# =============================================================================
+
+def create_app() -> FastAPI:
+    return get_app()
+
+
+def start_api_server():
+    run()
+
 
 if __name__ == "__main__":
-    # Executar servidor diretamente
     start_api_server()
+
+
+vision_api = VisionAPI()
+app = vision_api.initialize()

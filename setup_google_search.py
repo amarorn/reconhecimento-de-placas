@@ -1,22 +1,13 @@
-#!/usr/bin/env python3
-"""
-Script para configurar o Google Custom Search Engine
-===================================================
 
-Este script ajuda a configurar um Search Engine personalizado para a API do Google.
-"""
 
 import requests
 import json
 
 def create_search_engine():
-    """Cria um Search Engine personalizado"""
     print("🔧 Configurando Google Custom Search Engine...")
     
-    # Sua chave de API
     api_key = "AIzaSyDAFvNVY8BP2Vw7IIxBkKA3jJNXCJISHmE"
     
-    # URL para criar Search Engine
     url = "https://www.googleapis.com/customsearch/v1/siterestrict"
     
     print("\n📋 Para criar um Search Engine personalizado:")
@@ -32,13 +23,12 @@ def create_search_engine():
     print(f"\n🔑 Sua API Key: {api_key}")
     print("💡 Use esta chave no script principal")
     
-    # Testar a API com um Search Engine existente
     print("\n🧪 Testando API com Search Engine padrão...")
     
     test_url = "https://www.googleapis.com/customsearch/v1"
     params = {
         "key": api_key,
-        "cx": "017576662512468239146:omuauf_lfve",  # Search Engine padrão
+        "cx": "017576662512468239146:omuauf_lfve",
         "q": "brazilian traffic signs",
         "searchType": "image",
         "num": 1
@@ -60,7 +50,6 @@ def create_search_engine():
         print(f"❌ Erro ao testar API: {e}")
 
 def show_usage_examples():
-    """Mostra exemplos de uso da API"""
     print("\n📚 Exemplos de uso da API:")
     
     examples = [
