@@ -1,0 +1,72 @@
+# Configuração para GitHub Pages
+title: "Reconhecimento de Placas - Documentação"
+description: "Documentação completa do sistema de visão computacional para detecção e OCR de placas de veículos e sinais de trânsito"
+version: "2.0.0"
+last_updated: "2024-01-15"
+maintainers:
+  - name: "Equipe de Desenvolvimento"
+    email: "dev@empresa.com"
+
+# Configurações do tema
+theme: jekyll-theme-cayman
+show_downloads: false
+
+# Configurações de SEO
+url: "https://amarorn.github.io/reconhecimento-de-placas"
+baseurl: "/reconhecimento-de-placas"
+
+# Configurações de navegação
+nav:
+  - title: "Início"
+    url: "/"
+  - title: "Início Rápido"
+    url: "/getting-started/quick-start"
+  - title: "Arquitetura"
+    url: "/architecture/overview"
+  - title: "API Reference"
+    url: "/api-reference/endpoints"
+
+# Configurações de busca
+search: true
+search_full_content: true
+
+# Configurações de analytics (opcional)
+google_analytics: false
+
+# Configurações de comentários (opcional)
+comments: false
+
+# Configurações de social
+social:
+  github: amarorn
+  twitter: false
+  linkedin: false
+
+# Configurações de plugins
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
+  - jekyll-feed
+
+# Configurações de markdown
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+# Configurações de coleções
+collections:
+  docs:
+    output: true
+    permalink: /:collection/:name/
+
+# Configurações de defaults
+defaults:
+  - scope:
+      path: ""
+      type: "docs"
+    values:
+      layout: "page"
+      author: "Equipe de Desenvolvimento"
+      comments: false
+      share: false
