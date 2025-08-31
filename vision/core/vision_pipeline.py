@@ -19,27 +19,28 @@ import json
 from .base_processor import BaseVisionProcessor, ProcessingResult
 from ..preprocessing.image_preprocessor import ImagePreprocessor
 from ..detection.yolo_detector import YOLODetector
+from ..detection.specialized_detector import SpecializedDetector, UnifiedDetectionResult
 from ..ocr.text_extractor import TextExtractor
 
 @dataclass
 class PipelineResult:
-    """Resultado do processamento do pipeline"""
     success: bool
     image_path: str
     processing_time: float
     detections: List[Dict[str, Any]]
     ocr_results: List[Dict[str, Any]]
     integrated_results: List[Dict[str, Any]]
+    specialized_results: Optional[UnifiedDetectionResult] = None
     error_message: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
 
 class VisionPipeline(BaseVisionProcessor):
-    """Pipeline principal de visão computacional"""
     
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         self.preprocessor = None
         self.detector = None
+        self.specialized_detector = None
         self.text_extractor = None
         self.cache = {}
         self._initialized_at = None
@@ -49,13 +50,15 @@ class VisionPipeline(BaseVisionProcessor):
         self.initialize()
     
     def initialize(self):
-        """Inicializa os componentes do pipeline"""
         try:
             if 'preprocessor' in self.config:
                 self.preprocessor = ImagePreprocessor(self.config['preprocessor'])
             
             if 'detector' in self.config:
                 self.detector = YOLODetector(self.config['detector'])
+            
+            if 'specialized_detector' in self.config:
+                self.specialized_detector = SpecializedDetector(self.config['specialized_detector'])
             
             if 'ocr' in self.config:
                 self.text_extractor = TextExtractor(self.config['ocr'])
@@ -68,7 +71,6 @@ class VisionPipeline(BaseVisionProcessor):
             raise
     
     def preprocess_image(self, image: np.ndarray) -> np.ndarray:
-        """Pré-processa a imagem"""
         if self.preprocessor is None:
             return image
         
@@ -80,7 +82,6 @@ class VisionPipeline(BaseVisionProcessor):
             return image
     
     def detect_objects(self, image: np.ndarray) -> List[Dict[str, Any]]:
-        """Detecta objetos na imagem"""
         if self.detector is None:
             return []
         
@@ -91,60 +92,59 @@ class VisionPipeline(BaseVisionProcessor):
             self.logger.error(f"Erro na detecção: {e}")
             return []
     
+    def detect_specialized(self, image: np.ndarray) -> Optional[UnifiedDetectionResult]:
+        if self.specialized_detector is None:
+            return None
+        
+        try:
+            result = self.specialized_detector.detect_all(image)
+            return result
+        except Exception as e:
+            self.logger.error(f"Erro na detecção especializada: {e}")
+            return None
+    
     def extract_text(self, image: np.ndarray, regions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Extrai texto das regiões detectadas"""
         if self.text_extractor is None:
             return []
         
         try:
             ocr_regions = []
             for region in regions:
-                ocr_regions.append({
-                    'bbox': region['bbox']
-                })
+                if 'bbox' in region:
+                    ocr_regions.append({
+                        'bbox': region['bbox']
+                    })
             
-            result = self.text_extractor.extract_text(image, ocr_regions)
+            if not ocr_regions:
+                return []
             
-            ocr_results = []
-            for text_result in result.text_results:
-                ocr_results.append({
+            text_results = self.text_extractor.extract_text_batch(image, ocr_regions)
+            
+            return [
+                {
                     'text': text_result.text,
                     'confidence': text_result.confidence,
                     'bbox': text_result.bbox,
                     'language': text_result.language,
                     'processing_time': text_result.processing_time
-                })
-            
-            return ocr_results
+                }
+                for text_result in text_results
+            ]
             
         except Exception as e:
             self.logger.error(f"Erro na extração de texto: {e}")
             return []
     
-    def postprocess_results(self, detections: List[Dict[str, Any]], 
-                          ocr_results: List[Dict[str, Any]]) -> ProcessingResult:
-        """Implementa método abstrato da classe base"""
-        integrated = self.integrate_results(detections, ocr_results)
-        
-        return ProcessingResult(
-            success=True,
-            image_path="",
-            processing_time=0.0,
-            detections=detections,
-            ocr_results=ocr_results,
-            metadata={
-                'integrated_results': integrated,
-                'pipeline_version': '2.0.0'
-            }
-        )
-    
-    def integrate_results(self, detections: List[Dict[str, Any]], 
-                        ocr_results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Integra resultados de detecção e OCR"""
-        integrated = []
+    def integrate_detections(self, detections: List[Dict[str, Any]], 
+                           ocr_results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        integrated_results = []
         
         for detection in detections:
-            matching_texts = self._find_matching_texts(detection, ocr_results)
+            matching_texts = []
+            
+            for ocr_result in ocr_results:
+                if self._check_overlap(detection['bbox'], ocr_result['bbox']):
+                    matching_texts.append(ocr_result)
             
             integrated_result = {
                 'detection': detection,
@@ -153,110 +153,109 @@ class VisionPipeline(BaseVisionProcessor):
                 'confidence_score': self._calculate_integrated_confidence(detection, matching_texts)
             }
             
-            integrated.append(integrated_result)
+            integrated_results.append(integrated_result)
         
-        return integrated
+        return integrated_results
     
-    def _find_matching_texts(self, detection: Dict[str, Any], 
-                            ocr_results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Encontra textos que correspondem à detecção baseado em sobreposição"""
-        matching = []
+    def _check_overlap(self, bbox1: Tuple[int, int, int, int], 
+                      bbox2: Tuple[int, int, int, int]) -> bool:
+        x1_1, y1_1, w1, h1 = bbox1
+        x2_1, y2_1 = x1_1 + w1, y1_1 + h1
         
-        for ocr_result in ocr_results:
-            overlap_score = self._calculate_overlap(detection['bbox'], ocr_result['bbox'])
-            if overlap_score > 0.3:
-                matching.append({
-                    **ocr_result,
-                    'overlap_score': overlap_score
-                })
+        x1_2, y1_2, w2, h2 = bbox2
+        x2_2, y2_2 = x1_2 + w2, y1_2 + h2
         
-        return matching
+        overlap_x = max(0, min(x2_1, x2_2) - max(x1_1, x1_2))
+        overlap_y = max(0, min(y2_1, y2_2) - max(y1_1, y1_2))
+        
+        overlap_area = overlap_x * overlap_y
+        area1 = w1 * h1
+        area2 = w2 * h2
+        
+        min_area = min(area1, area2)
+        return overlap_area > 0.3 * min_area
     
-    def _calculate_overlap(self, bbox1: Tuple, bbox2: Tuple) -> float:
-        """Calcula sobreposição entre duas bounding boxes"""
-        x1, y1, w1, h1 = bbox1
-        x2, y2, w2, h2 = bbox2
-        
-        x_left = max(x1, x2)
-        y_top = max(y1, y2)
-        x_right = min(x1 + w1, x2 + w2)
-        y_bottom = min(y1 + h1, y2 + h2)
-        
-        if x_right < x_left or y_bottom < y_top:
-            return 0.0
-        
-        intersection = (x_right - x_left) * (y_bottom - y_top)
-        union = w1 * h1 + w2 * h2 - intersection
-        
-        return intersection / union if union > 0 else 0.0
-    
-    def _select_primary_text(self, matching_texts: List[Dict[str, Any]]) -> Optional[str]:
-        """Seleciona o texto principal baseado na confiança e sobreposição"""
-        if not matching_texts:
+    def _select_primary_text(self, texts: List[Dict[str, Any]]) -> Optional[str]:
+        if not texts:
             return None
         
-        scored_texts = []
-        for text in matching_texts:
-            score = text['confidence'] * 0.7 + text['overlap_score'] * 0.3
-            scored_texts.append((score, text))
-        
-        scored_texts.sort(reverse=True)
-        return scored_texts[0][1]['text']
+        best_result = max(texts, key=lambda x: x['confidence'])
+        return best_result['text']
     
     def _calculate_integrated_confidence(self, detection: Dict[str, Any], 
-                                       matching_texts: List[Dict[str, Any]]) -> float:
-        """Calcula confiança integrada da detecção"""
-        detection_conf = detection['confidence']
+                                       texts: List[Dict[str, Any]]) -> float:
+        detection_conf = detection.get('confidence', 0.0)
         
-        if not matching_texts:
+        if not texts:
             return detection_conf * 0.5
         
-        ocr_conf = np.mean([t['confidence'] for t in matching_texts])
-        overlap_score = np.mean([t['overlap_score'] for t in matching_texts])
+        text_conf = max(text['confidence'] for text in texts)
+        return (detection_conf + text_conf) / 2
+    
+    def postprocess_results(self, detections: List[Dict[str, Any]], 
+                          ocr_results: List[Dict[str, Any]]) -> ProcessingResult:
+        integrated_results = self.integrate_detections(detections, ocr_results)
         
-        integrated_conf = (detection_conf * 0.4 + 
-                          ocr_conf * 0.4 + 
-                          overlap_score * 0.2)
-        
-        return integrated_conf
+        return ProcessingResult(
+            success=True,
+            image_path="",
+            processing_time=0.0,
+            detections=detections,
+            ocr_results=ocr_results,
+            metadata={
+                'integrated_results': integrated_results,
+                'total_detections': len(detections),
+                'total_texts': len(ocr_results)
+            }
+        )
     
     def process_image(self, image_path: str) -> PipelineResult:
-        """Processa uma imagem através do pipeline completo"""
         start_time = time.time()
         
         try:
-            image = cv2.imread(image_path)
+            image = self.load_image(image_path)
             if image is None:
-                raise ValueError(f"Não foi possível carregar a imagem: {image_path}")
+                return PipelineResult(
+                    success=False,
+                    image_path=image_path,
+                    processing_time=0.0,
+                    detections=[],
+                    ocr_results=[],
+                    integrated_results=[],
+                    error_message="Falha ao carregar imagem"
+                )
             
             processed_image = self.preprocess_image(image)
+            
             detections = self.detect_objects(processed_image)
             ocr_results = self.extract_text(processed_image, detections)
-            integrated_results = self.integrate_results(detections, ocr_results)
+            integrated_results = self.integrate_detections(detections, ocr_results)
+            
+            specialized_results = self.detect_specialized(processed_image)
             
             processing_time = time.time() - start_time
-            self._update_processing_stats(processing_time)
             
-            return PipelineResult(
+            metadata = self._generate_metadata(
+                detections, ocr_results, integrated_results, specialized_results
+            )
+            
+            result = PipelineResult(
                 success=True,
                 image_path=image_path,
                 processing_time=processing_time,
                 detections=detections,
                 ocr_results=ocr_results,
                 integrated_results=integrated_results,
-                metadata={
-                    'pipeline_version': '2.0.0',
-                    'components': {
-                        'preprocessor': self.preprocessor is not None,
-                        'detector': self.detector is not None,
-                        'ocr': self.text_extractor is not None
-                    }
-                }
+                specialized_results=specialized_results,
+                metadata=metadata
             )
+            
+            self._update_statistics(processing_time)
+            return result
             
         except Exception as e:
             processing_time = time.time() - start_time
-            self.logger.error(f"Erro no processamento de {image_path}: {e}")
+            self.logger.error(f"Erro ao processar imagem {image_path}: {e}")
             
             return PipelineResult(
                 success=False,
@@ -268,23 +267,16 @@ class VisionPipeline(BaseVisionProcessor):
                 error_message=str(e)
             )
     
-    def process_batch(self, image_paths: List[str], output_dir: Optional[str] = None) -> List[PipelineResult]:
-        """Processa um lote de imagens"""
+    def process_batch(self, image_paths: List[str]) -> List[PipelineResult]:
         results = []
         
-        for i, image_path in enumerate(image_paths):
-            self.logger.info(f"Processando imagem {i+1}/{len(image_paths)}: {image_path}")
-            
+        for image_path in image_paths:
             try:
                 result = self.process_image(image_path)
                 results.append(result)
-                
-                if output_dir and result.success:
-                    self._save_result(result, output_dir, i)
-                    
             except Exception as e:
-                self.logger.error(f"Erro ao processar {image_path}: {e}")
-                results.append(PipelineResult(
+                self.logger.error(f"Erro ao processar lote {image_path}: {e}")
+                error_result = PipelineResult(
                     success=False,
                     image_path=image_path,
                     processing_time=0.0,
@@ -292,28 +284,42 @@ class VisionPipeline(BaseVisionProcessor):
                     ocr_results=[],
                     integrated_results=[],
                     error_message=str(e)
-                ))
+                )
+                results.append(error_result)
         
         return results
     
-    def _save_result(self, result: PipelineResult, output_dir: str, index: int):
-        """Salva resultado em arquivo"""
-        output_path = Path(output_dir) / f"result_{index:04d}.json"
+    def _generate_metadata(self, detections: List[Dict[str, Any]], 
+                          ocr_results: List[Dict[str, Any]], 
+                          integrated_results: List[Dict[str, Any]],
+                          specialized_results: Optional[UnifiedDetectionResult]) -> Dict[str, Any]:
         
-        with open(output_path, 'w') as f:
-            json.dump({
-                'success': result.success,
-                'image_path': result.image_path,
-                'processing_time': result.processing_time,
-                'detections_count': len(result.detections),
-                'ocr_results_count': len(result.ocr_results),
-                'integrated_results_count': len(result.integrated_results),
-                'error_message': result.error_message,
-                'metadata': result.metadata
-            }, f, indent=2, default=str)
+        metadata = {
+            'pipeline_version': '2.0.0',
+            'components': {
+                'preprocessor': self.preprocessor is not None,
+                'detector': self.detector is not None,
+                'specialized_detector': self.specialized_detector is not None,
+                'ocr': self.text_extractor is not None
+            },
+            'processing_info': {
+                'initialized_at': getattr(self, '_initialized_at', None),
+                'cache_size': len(self.cache),
+                'config': self.config
+            }
+        }
+        
+        if specialized_results:
+            metadata['specialized_detection'] = {
+                'vehicle_plates': len(specialized_results.vehicle_plates),
+                'signal_plates': len(specialized_results.signal_plates),
+                'potholes': len(specialized_results.potholes),
+                'total_specialized': specialized_results.total_detections
+            }
+        
+        return metadata
     
-    def _update_processing_stats(self, processing_time: float):
-        """Atualiza estatísticas de processamento"""
+    def _update_statistics(self, processing_time: float):
         self._last_processing_time = processing_time
         self._total_processed_images += 1
         self._processing_times.append(processing_time)
@@ -321,53 +327,28 @@ class VisionPipeline(BaseVisionProcessor):
         if len(self._processing_times) > 100:
             self._processing_times.pop(0)
     
-    def get_last_processing_time(self) -> float:
-        """Retorna o tempo do último processamento"""
-        return self._last_processing_time
-    
-    def get_total_processed_images(self) -> int:
-        """Retorna o total de imagens processadas"""
-        return self._total_processed_images
-    
-    def get_average_processing_time(self) -> float:
-        """Retorna o tempo médio de processamento"""
+    def get_statistics(self) -> Dict[str, Any]:
         if not self._processing_times:
-            return 0.0
-        return np.mean(self._processing_times)
-    
-    def get_memory_usage(self) -> float:
-        """Retorna uso de memória em MB (simulado)"""
-        return 0.25
-    
-    def get_cpu_usage(self) -> float:
-        """Retorna uso de CPU em porcentagem (simulado)"""
-        return 0.15
-    
-    def get_uptime(self) -> float:
-        """Retorna tempo de atividade em segundos"""
-        if self._initialized_at is None:
-            return 0.0
-        return (datetime.utcnow() - self._initialized_at).total_seconds()
+            return {
+                'total_processed': 0,
+                'average_processing_time': 0.0,
+                'last_processing_time': 0.0
+            }
+        
+        return {
+            'total_processed': self._total_processed_images,
+            'average_processing_time': np.mean(self._processing_times),
+            'last_processing_time': self._last_processing_time,
+            'min_processing_time': np.min(self._processing_times),
+            'max_processing_time': np.max(self._processing_times)
+        }
     
     def cleanup(self):
-        """Executa limpeza de recursos"""
-        self.logger.info("Executando limpeza do pipeline...")
-        
-        self.cache.clear()
-        self._processing_times.clear()
-        
-        self.logger.info("Limpeza concluída")
-    
-    def get_status(self) -> Dict[str, Any]:
-        """Retorna status do pipeline"""
-        return {
-            'pipeline_version': '2.0.0',
-            'components': {
-                'preprocessor': self.preprocessor is not None,
-                'detector': self.detector is not None,
-                'ocr': self.text_extractor is not None
-            },
-            'initialized_at': getattr(self, '_initialized_at', None),
-            'cache_size': len(self.cache),
-            'config': self.config
-        }
+        if self.preprocessor:
+            self.preprocessor.cleanup()
+        if self.detector:
+            self.detector.cleanup()
+        if self.specialized_detector:
+            self.specialized_detector.cleanup()
+        if self.text_extractor:
+            self.text_extractor.cleanup()

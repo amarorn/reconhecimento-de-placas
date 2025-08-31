@@ -27,6 +27,7 @@ from .routers import (
     health_router, vision_router, 
     monitoring_router, auth_router
 )
+from .endpoints import router as video_endpoints
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +45,7 @@ RATE_LIMIT_WINDOW = int(os.getenv("RATE_LIMIT_WINDOW", "60"))
 
 class VisionAPI:
     def __init__(self, title: str = "API de Visão Computacional", 
-                 description: str = "API para detecção e reconhecimento de placas e sinais de trânsito",
+                 description: str = "API para detecção e reconhecimento de placas, sinais de trânsito e análise de vídeo",
                  version: str = "1.0.0",
                  debug: bool = DEBUG):
         self.title = title
@@ -101,8 +102,11 @@ class VisionAPI:
         @self.app.middleware("http")
         async def log_requests(request: Request, call_next):
             start_time = time.time()
+            
             response = await call_next(request)
+            
             process_time = time.time() - start_time
+            response.headers["X-Process-Time"] = str(process_time)
             
             logger.info(
                 f"{request.method} {request.url.path} - "
@@ -131,6 +135,11 @@ class VisionAPI:
             self.app.include_router(auth_router)
             logger.info("Router de autenticação adicionado")
         
+        # Adicionar endpoints de vídeo
+        if video_endpoints:
+            self.app.include_router(video_endpoints, prefix="/vision", tags=["Video Analysis"])
+            logger.info("Endpoints de análise de vídeo adicionados")
+        
         @self.app.get("/")
         async def root():
             return {
@@ -154,7 +163,8 @@ class VisionAPI:
                     "health": health_router is not None,
                     "vision": vision_router is not None,
                     "monitoring": monitoring_router is not None,
-                    "auth": auth_router is not None
+                    "auth": auth_router is not None,
+                    "video_analysis": video_endpoints is not None
                 }
             }
     
@@ -209,48 +219,14 @@ class VisionAPI:
         
         @self.app.on_event("shutdown")
         async def shutdown_event():
-            logger.info(f"{self.title} parando...")
-            
+            logger.info(f"{self.title} encerrando...")
             self._cleanup()
     
     def _check_components(self):
-        logger.info("Verificando dependências...")
+        logger.info("Verificando componentes...")
         
-        try:
-            import fastapi
-            logger.info("   FastAPI disponível")
-        except ImportError:
-            logger.warning("   FastAPI não disponível")
-        
-        try:
-            import uvicorn
-            logger.info("   Uvicorn disponível")
-        except ImportError:
-            logger.warning("   Uvicorn não disponível")
-        
-        try:
-            import numpy
-            logger.info("   NumPy disponível")
-        except ImportError:
-            logger.warning("   NumPy não disponível")
-        
-        try:
-            import cv2
-            logger.info("   OpenCV disponível")
-        except ImportError:
-            logger.warning("   OpenCV não disponível")
-        
-        try:
-            import torch
-            logger.info("   PyTorch disponível")
-        except ImportError:
-            logger.warning("   PyTorch não disponível")
-        
-        logger.info("Verificação de dependências concluída")
-    
-    def _check_dependencies(self):
         required_modules = [
-            "fastapi", "uvicorn", "numpy", "cv2", "torch"
+            "fastapi", "uvicorn", "numpy", "opencv-python"
         ]
         
         missing_modules = []

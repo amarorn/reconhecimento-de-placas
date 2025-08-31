@@ -98,8 +98,23 @@ class DetectionResult(BaseModel):
 class VideoFrameResult(BaseModel):
     frame_number: int = Field(..., description="Número do frame")
     timestamp: float = Field(..., description="Timestamp do frame em segundos")
-    detections: List[DetectionResult] = Field(..., description="Detecções no frame")
-    pothole_count: int = Field(..., description="Quantidade de buracos detectados")
+    detections: List[DetectionResult] = Field(default_factory=list, description="Detecções no frame")
+
+
+class ImageRequest(BaseModel):
+    """Modelo para requisição de processamento de imagem"""
+    image_data: str = Field(..., description="Imagem em formato base64")
+    save_results: bool = Field(False, description="Se deve salvar os resultados")
+    return_annotated_image: bool = Field(False, description="Se deve retornar imagem anotada")
+    return_confidence_scores: bool = Field(False, description="Se deve retornar scores de confiança")
+    return_processing_time: bool = Field(False, description="Se deve retornar tempo de processamento")
+
+
+class ProcessResponse(BaseModel):
+    """Modelo para resposta de processamento (imagem ou vídeo)"""
+    result: Dict[str, Any] = Field(..., description="Resultados do processamento")
+    timestamp: str = Field(..., description="Timestamp da resposta")
+    api_version: str = Field(..., description="Versão da API")
 
 
 class SignalPlateRequest(BaseRequest):
@@ -191,11 +206,22 @@ class TokenResponse(BaseModel):
 
 
 class User(BaseModel):
-    user_id: str = Field(..., description="ID único do usuário")
-    username: str = Field(..., description="Nome de usuário")
-    email: str = Field(..., description="Email do usuário")
-    is_active: bool = Field(..., description="Indica se o usuário está ativo")
-    permissions: List[str] = Field(..., description="Permissões do usuário")
+    """Modelo para usuário autenticado"""
+    username: str
+    email: Optional[str] = None
+    full_name: Optional[str] = None
+    disabled: Optional[bool] = None
+
+
+class Token(BaseModel):
+    """Modelo para token de autenticação"""
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    """Modelo para dados do token"""
+    username: Optional[str] = None
 
 
 class UploadResponse(BaseModel):
