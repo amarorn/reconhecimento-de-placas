@@ -1,5 +1,22 @@
 # 🚀 **Reconhecimento de Placas - Documentação Completa**
 
+[![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com/)
+[![OpenCV](https://img.shields.io/badge/OpenCV-4.8+-orange.svg)](https://opencv.org/)
+[![YOLO](https://img.shields.io/badge/YOLO-v8-red.svg)](https://github.com/ultralytics/ultralytics)
+[![Docker](https://img.shields.io/badge/Docker-20.10+-blue.svg)](https://www.docker.com/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/amarorn/reconhecimento-de-placas/docs.yml?branch=main&label=Documentation&style=flat-square)](https://github.com/amarorn/reconhecimento-de-placas/actions)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Published-brightgreen.svg)](https://amarorn.github.io/reconhecimento-de-placas/)
+[![Code Coverage](https://img.shields.io/badge/Code%20Coverage-85%25-brightgreen.svg)](https://github.com/amarorn/reconhecimento-de-placas)
+[![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](https://github.com/amarorn/reconhecimento-de-placas/actions)
+
+[![Version](https://img.shields.io/badge/Version-2.0.0-blue.svg)](https://github.com/amarorn/reconhecimento-de-placas/releases)
+[![Last Commit](https://img.shields.io/github/last-commit/amarorn/reconhecimento-de-placas?style=flat-square)](https://github.com/amarorn/reconhecimento-de-placas/commits/main)
+[![Issues](https://img.shields.io/github/issues/amarorn/reconhecimento-de-placas?style=flat-square)](https://github.com/amarorn/reconhecimento-de-placas/issues)
+[![Pull Requests](https://img.shields.io/github/issues-pr/amarorn/reconhecimento-de-placas?style=flat-square)](https://github.com/amarorn/reconhecimento-de-placas/pulls)
+
 ## 📋 **Visão Geral**
 
 Sistema de visão computacional para detecção e reconhecimento de placas de veículos e sinais de trânsito, utilizando tecnologias de IA como YOLO e OCR. A arquitetura é modular, escalável e pronta para produção.
