@@ -16,28 +16,18 @@ cd reconhecimento-de-placas
 
 ### **2. Configure o ambiente**
 ```bash
-# Copie o arquivo de exemplo
 cp .env.example .env
-
-# Edite as configurações (opcional para teste)
-# nano .env
 ```
 
 ### **3. Execute com Docker**
 ```bash
-# Inicie todos os serviços
 docker-compose up -d
-
-# Aguarde alguns segundos para inicialização
 sleep 10
 ```
 
 ### **4. Verifique o status**
 ```bash
-# Verifique se todos os containers estão rodando
 docker-compose ps
-
-# Teste a API
 curl http://localhost:8000/health
 ```
 
@@ -51,22 +41,13 @@ curl http://localhost:8000/health
 
 ### **Verificar API**
 ```bash
-# Health check
 curl http://localhost:8000/health
-
-# Informações da API
 curl http://localhost:8000/info
-
-# Documentação Swagger
-# Abra: http://localhost:8000/docs
 ```
 
 ### **Verificar Dashboard**
 ```bash
-# Status do dashboard
 curl http://localhost:8080/health
-
-# Abra no navegador: http://localhost:8080
 ```
 
 ## 🚀 **Próximos Passos**
@@ -82,44 +63,32 @@ Agora que o sistema está rodando, você pode:
 
 ### **Container não inicia**
 ```bash
-# Ver logs
 docker-compose logs vision-api
-
-# Reiniciar
 docker-compose restart
 ```
 
 ### **Porta já em uso**
 ```bash
-# Verificar portas
 lsof -i :8000
 lsof -i :8080
-
-# Parar serviços
 docker-compose down
 ```
 
 ### **Problemas de permissão**
 ```bash
-# Dar permissão aos scripts
 chmod +x scripts/*.sh
-
-# Executar como usuário atual
 docker-compose up -d
 ```
 
 ## 📋 **Comandos Úteis**
 
 ```bash
-# Gerenciar serviços
-docker-compose up -d          # Iniciar
-docker-compose down           # Parar
-docker-compose restart        # Reiniciar
-docker-compose logs -f        # Ver logs em tempo real
-
-# Limpar recursos
-docker-compose down -v        # Parar e remover volumes
-docker system prune           # Limpar recursos não utilizados
+docker-compose up -d
+docker-compose down
+docker-compose restart
+docker-compose logs -f
+docker-compose down -v
+docker system prune
 ```
 
 ## 🎯 **O que foi configurado**

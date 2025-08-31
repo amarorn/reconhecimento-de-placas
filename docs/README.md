@@ -22,7 +22,6 @@ cd reconhecimento-de-placas
 
 # Configure o ambiente
 cp .env.example .env
-# Edite .env com suas configurações
 
 # Execute com Docker
 docker-compose up -d

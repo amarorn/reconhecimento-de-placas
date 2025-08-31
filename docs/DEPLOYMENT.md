@@ -77,7 +77,6 @@ A documentação já está configurada para deploy automático via GitHub Action
 
 #### **2. Configurar domínio personalizado (opcional)**
 ```bash
-# Adicionar arquivo CNAME na raiz do docs/
 echo "docs.seudominio.com" > docs/CNAME
 ```
 
@@ -93,7 +92,6 @@ O GitHub Pages ativa HTTPS automaticamente para domínios personalizados.
 
 ### **Google Analytics (opcional)**
 ```html
-<!-- Adicionar em docs/_includes/head.html -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -107,15 +105,12 @@ O GitHub Pages ativa HTTPS automaticamente para domínios personalizados.
 
 ### **Tema Jekyll Personalizado**
 ```yaml
-# docs/_config.yml
 theme: jekyll-theme-cayman
-# ou tema customizado
 remote_theme: pages-themes/cayman@v0.2.0
 ```
 
 ### **Layouts Customizados**
 ```html
-<!-- docs/_layouts/default.html -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -131,7 +126,6 @@ remote_theme: pages-themes/cayman@v0.2.0
 
 ### **CSS Personalizado**
 ```css
-/* docs/assets/css/style.css */
 :root {
     --primary-color: #0366d6;
     --secondary-color: #586069;
@@ -151,7 +145,6 @@ body {
 
 ### **CSS Responsivo**
 ```css
-/* Mobile-first approach */
 @media (max-width: 768px) {
     .container {
         padding: 20px;
@@ -167,7 +160,6 @@ body {
 
 ### **Meta Tags**
 ```yaml
-# docs/_config.yml
 seo:
   title: "Reconhecimento de Placas - Documentação"
   description: "Documentação completa do sistema de visão computacional"
@@ -178,7 +170,6 @@ seo:
 
 ### **Sitemap**
 ```yaml
-# docs/_config.yml
 plugins:
   - jekyll-sitemap
 
@@ -188,7 +179,6 @@ sitemap:
 
 ### **Robots.txt**
 ```txt
-# docs/robots.txt
 User-agent: *
 Allow: /
 
@@ -211,10 +201,7 @@ git branch -a | grep gh-pages
 
 ### **Links quebrados**
 ```bash
-# Executar validação local
 python scripts/validate_links.py
-
-# Verificar estrutura de arquivos
 tree docs/
 ```
 

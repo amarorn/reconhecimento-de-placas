@@ -168,7 +168,6 @@ class OCRStrategy(ABC):
 
 class PaddleOCRStrategy(OCRStrategy):
     def extract_text(self, image: np.ndarray) -> TextResult:
-        # Implementação PaddleOCR
         pass
 ```
 
