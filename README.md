@@ -7,6 +7,7 @@ Este projeto implementa uma **arquitetura moderna e escalável** para reconhecim
 ## 🎯 **FASES IMPLEMENTADAS**
 
 ### ✅ **FASE 1: QUALIDADE E AUTOMAÇÃO**
+
 - **Testes unitários e de integração** com pytest
 - **CI/CD pipeline** com GitHub Actions
 - **Ferramentas de qualidade** (Black, Flake8, MyPy)
@@ -14,6 +15,7 @@ Este projeto implementa uma **arquitetura moderna e escalável** para reconhecim
 - **Cobertura de código** e relatórios
 
 ### ✅ **FASE 2: DASHBOARD E MONITORAMENTO**
+
 - **Dashboard web em tempo real** com FastAPI
 - **Sistema de métricas** avançado
 - **Alertas automáticos** configuráveis
@@ -21,6 +23,7 @@ Este projeto implementa uma **arquitetura moderna e escalável** para reconhecim
 - **WebSockets** para atualizações em tempo real
 
 ### ✅ **FASE 3: API REST E INTEGRAÇÃO**
+
 - **API REST completa** com FastAPI
 - **Autenticação JWT** com refresh tokens
 - **Documentação Swagger/OpenAPI** automática
@@ -28,6 +31,7 @@ Este projeto implementa uma **arquitetura moderna e escalável** para reconhecim
 - **Integração** com sistemas externos
 
 ### ✅ **FASE 4: DEPLOY E INFRAESTRUTURA**
+
 - **Containerização Docker** otimizada
 - **Orquestração** com Docker Compose
 - **Monitoramento** com Prometheus/Grafana
@@ -77,6 +81,7 @@ Este projeto implementa uma **arquitetura moderna e escalável** para reconhecim
 ## 🚀 **INÍCIO RÁPIDO**
 
 ### **1. Pré-requisitos**
+
 ```bash
 # Docker e Docker Compose
 docker --version
@@ -90,6 +95,7 @@ git --version
 ```
 
 ### **2. Clone e Setup**
+
 ```bash
 # Clone o repositório
 git clone https://github.com/amarorn/reconhecimento-de-placas.git
@@ -103,6 +109,7 @@ cp .env.dev .env
 ```
 
 ### **3. Deploy Automatizado**
+
 ```bash
 # Torne o script executável
 chmod +x scripts/deploy.sh
@@ -115,6 +122,7 @@ chmod +x scripts/deploy.sh
 ```
 
 ### **4. Acessar Serviços**
+
 ```
 🌐 API: http://localhost:8000
 📊 Dashboard: http://localhost:8080
@@ -131,6 +139,7 @@ chmod +x scripts/deploy.sh
 ### **Variáveis de Ambiente**
 
 #### **Desenvolvimento (`.env.dev`)**
+
 ```bash
 ENVIRONMENT=development
 API_RELOAD=true
@@ -142,6 +151,7 @@ DEBUG=true
 ```
 
 #### **Produção (`.env.prod`)**
+
 ```bash
 ENVIRONMENT=production
 API_RELOAD=false
@@ -174,16 +184,19 @@ docker-compose down          # Parar serviços
 ## 📚 **DOCUMENTAÇÃO**
 
 ### **Fases Implementadas**
+
 - [📖 **Fase 1**](docs/FASE1_IMPLEMENTADA.md) - Qualidade e Automação
 - [📖 **Fase 2**](docs/FASE2_DASHBOARD_MONITORAMENTO.md) - Dashboard e Monitoramento
 - [📖 **Fase 3**](docs/FASE3_API_REST_INTEGRACAO.md) - API REST e Integração
 - [📖 **Fase 4**](docs/FASE4_DEPLOY_INFRAESTRUTURA.md) - Deploy e Infraestrutura
 
 ### **Referências da API**
+
 - [📖 **API Reference**](docs/API_REFERENCE.md) - Documentação completa da API
 - [📖 **Requirements**](README_REQUIREMENTS.md) - Gestão de dependências
 
 ### **Exemplos de Uso**
+
 - [🧪 **API Example**](examples/api_example.py) - Cliente completo da API
 - [🧪 **Dashboard Example**](examples/dashboard_example.py) - Uso do dashboard
 - [🧪 **Vision Example**](examples/refactored_vision_example.py) - Pipeline de visão
@@ -191,6 +204,7 @@ docker-compose down          # Parar serviços
 ## 🧪 **TESTES**
 
 ### **Executar Testes**
+
 ```bash
 # Instalar dependências de teste
 pip install -r requirements-dev.txt
@@ -207,6 +221,7 @@ python -m pytest tests/test_vision.py -v
 ```
 
 ### **Qualidade de Código**
+
 ```bash
 # Formatação
 black vision/
@@ -225,12 +240,14 @@ safety check
 ## 📊 **MONITORAMENTO**
 
 ### **Métricas Disponíveis**
+
 - **Sistema**: CPU, memória, disco, rede
 - **Aplicação**: requisições, tempo de resposta, erros
 - **Pipeline**: detecções, OCR, performance
 - **Infraestrutura**: containers, serviços, conectividade
 
 ### **Alertas Configuráveis**
+
 - **Performance**: tempo de resposta alto, uso de recursos
 - **Disponibilidade**: serviços down, health checks falhando
 - **Segurança**: tentativas de login, rate limiting
@@ -239,6 +256,7 @@ safety check
 ## 🔒 **SEGURANÇA**
 
 ### **Configurações Implementadas**
+
 - **Usuários não-root** nos containers
 - **Secrets** gerenciados via variáveis de ambiente
 - **Rate limiting** configurável
@@ -248,6 +266,7 @@ safety check
 - **Autenticação JWT** com refresh tokens
 
 ### **Usuários Padrão**
+
 ```
 👑 Admin: admin/admin123 (acesso completo)
 🧪 Test: test/test123 (leitura e escrita)
@@ -257,6 +276,7 @@ safety check
 ## 🚀 **DEPLOY EM PRODUÇÃO**
 
 ### **1. Preparação**
+
 ```bash
 # Configurar variáveis de ambiente
 cp .env.prod .env
@@ -269,6 +289,7 @@ export REDIS_PASSWORD="sua-senha-redis-muito-segura"
 ```
 
 ### **2. Deploy**
+
 ```bash
 # Deploy completo
 ./scripts/deploy.sh prod
@@ -281,6 +302,7 @@ export REDIS_PASSWORD="sua-senha-redis-muito-segura"
 ```
 
 ### **3. Verificação**
+
 ```bash
 # Health checks
 curl https://seu-dominio.com/health
@@ -297,20 +319,21 @@ docker-compose -f docker-compose.prod.yml logs -f
 ### **Problemas Comuns**
 
 1. **Container não inicia**
+
    ```bash
    docker-compose logs vision-api
    docker stats
    docker-compose config
    ```
-
 2. **Serviços não se comunicam**
+
    ```bash
    docker network ls
    docker network inspect vision-network
    docker exec vision-api ping postgres
    ```
-
 3. **Performance lenta**
+
    ```bash
    docker stats
    curl http://localhost:9090/api/v1/query?query=up
@@ -318,6 +341,7 @@ docker-compose -f docker-compose.prod.yml logs -f
    ```
 
 ### **Logs e Debugging**
+
 ```bash
 # Logs em tempo real
 docker-compose logs -f --tail=100
@@ -332,6 +356,7 @@ docker-compose -f docker-compose.prod.yml logs -f
 ## 📈 **ROADMAP FUTURO**
 
 ### **Fase 5: Otimizações Avançadas**
+
 - [ ] Kubernetes para orquestração em escala
 - [ ] Service mesh (Istio) para comunicação entre serviços
 - [ ] Auto-scaling baseado em métricas
@@ -339,6 +364,7 @@ docker-compose -f docker-compose.prod.yml logs -f
 - [ ] Disaster recovery automatizado
 
 ### **Fase 6: Inteligência Operacional**
+
 - [ ] Machine Learning para detecção de anomalias
 - [ ] Predictive maintenance
 - [ ] Auto-healing de serviços
@@ -348,6 +374,7 @@ docker-compose -f docker-compose.prod.yml logs -f
 ## 🤝 **CONTRIBUIÇÃO**
 
 ### **Como Contribuir**
+
 1. **Fork** o repositório
 2. **Crie** uma branch para sua feature (`git checkout -b feature/nova-funcionalidade`)
 3. **Commit** suas mudanças (`git commit -am 'Adiciona nova funcionalidade'`)
@@ -355,6 +382,7 @@ docker-compose -f docker-compose.prod.yml logs -f
 5. **Abra** um Pull Request
 
 ### **Padrões de Código**
+
 - **Python**: PEP 8, type hints, docstrings
 - **Testes**: pytest, cobertura mínima de 80%
 - **Qualidade**: Black, Flake8, MyPy
@@ -375,12 +403,14 @@ Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](L
 ## 📞 **SUPORTE**
 
 ### **Canais de Ajuda**
+
 - **Issues**: [GitHub Issues](https://github.com/amarorn/reconhecimento-de-placas/issues)
 - **Documentação**: [docs/](docs/) - Documentação completa
 - **Exemplos**: [examples/](examples/) - Exemplos de uso
 - **Scripts**: [scripts/](scripts/) - Scripts de deploy e gerenciamento
 
 ### **Informações do Sistema**
+
 ```bash
 # Ver informações da API
 curl http://localhost:8000/info
@@ -397,12 +427,14 @@ curl http://localhost:8080/info
 ## 🎉 **STATUS DO PROJETO**
 
 ### **✅ Fases Completas (100%)**
+
 - **Fase 1**: Qualidade e Automação ✅
 - **Fase 2**: Dashboard e Monitoramento ✅
 - **Fase 3**: API REST e Integração ✅
 - **Fase 4**: Deploy e Infraestrutura ✅
 
 ### **🚀 Sistema Pronto para Produção**
+
 - **Arquitetura moderna** e escalável
 - **Testes abrangentes** e automatizados
 - **Monitoramento completo** e alertas
@@ -412,3 +444,28 @@ curl http://localhost:8080/info
 ---
 
 **🎯 O projeto está 100% implementado e pronto para uso em produção! 🎯**
+
+
+docker-compose -f docker-compose.prod.yml config --services
+
+
+
+lasticsearch
+
+kibana
+
+redis
+
+postgres
+
+vision-api
+
+nginx
+
+prometheus
+
+grafana
+
+logstash
+
+backup

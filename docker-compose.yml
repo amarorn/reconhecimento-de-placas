@@ -175,6 +175,26 @@ services:
     depends_on:
       - elasticsearch
 
+  # Interface Web para upload de imagens
+  vision-interface:
+    build:
+      context: .
+      dockerfile: Dockerfile.interface
+    container_name: vision-interface-dev
+    ports:
+      - "3001:3001"
+    networks:
+      - vision-network
+    depends_on:
+      - vision-api
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
   # Nginx para proxy reverso
   nginx:
     image: nginx:alpine
@@ -191,6 +211,7 @@ services:
     restart: unless-stopped
     depends_on:
       - vision-api
+      - vision-interface
 
 volumes:
   redis_data:

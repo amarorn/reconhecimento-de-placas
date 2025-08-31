@@ -1,0 +1,28 @@
+# Dockerfile para Interface Web - Visão Computacional
+# ==================================================
+
+FROM nginx:alpine
+
+# Metadados
+LABEL maintainer="Equipe de Desenvolvimento"
+LABEL version="1.0.0"
+LABEL description="Interface Web para Visão Computacional"
+
+# Copiar arquivos da interface
+COPY vision_interface.html /usr/share/nginx/html/index.html
+
+# Configuração customizada do Nginx
+COPY nginx/interface.conf /etc/nginx/conf.d/default.conf
+
+# Criar diretório para logs
+RUN mkdir -p /var/log/nginx
+
+# Expor porta
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3000 || exit 1
+
+# Comando padrão
+CMD ["nginx", "-g", "daemon off;"]

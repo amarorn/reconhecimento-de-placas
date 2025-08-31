@@ -1,0 +1,12 @@
+# Docker Compose temporário sem Logstash para evitar conflito de porta
+# Use este arquivo se a porta 5000 estiver em uso
+
+version: '3.8'
+
+services:
+  # Sobrescrever logstash para desabilitá-lo
+  logstash:
+    deploy:
+      replicas: 0
+    command: ["echo", "Logstash desabilitado devido a conflito de porta 5000"]
+    ports: []

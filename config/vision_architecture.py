@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """
-Configuração da Arquitetura de Visão Computacional Refatorada
-============================================================
+Configuração da Arquitetura de Visão Computacional
+==================================================
 
-Esta configuração define a nova arquitetura modular e escalável para
-o sistema de reconhecimento de placas de trânsito e veículos.
+Configurações para modelos, OCR e pipeline de processamento.
 """
 
 from dataclasses import dataclass
@@ -12,147 +11,90 @@ from typing import List, Dict, Any, Optional, Tuple
 from enum import Enum
 import os
 
-class ModelType(Enum):
-    """Tipos de modelos suportados"""
+class ModelType(str, Enum):
+    """Tipos de modelos disponíveis"""
     YOLO = "yolo"
-    DETR = "detr"
-    EFFICIENTDET = "efficientdet"
-    RETINANET = "retinanet"
-
-class OCRType(Enum):
-    """Tipos de OCR suportados"""
     PADDLEOCR = "paddleocr"
     EASYOCR = "easyocr"
     TESSERACT = "tesseract"
-    TRANSFORMER_OCR = "transformer_ocr"
 
-class PreprocessingType(Enum):
+class PreprocessingType(str, Enum):
     """Tipos de pré-processamento"""
     BASIC = "basic"
-    ADVANCED = "advanced"
-    ADAPTIVE = "adaptive"
     AI_ENHANCED = "ai_enhanced"
+    CUSTOM = "custom"
 
 @dataclass
 class ModelConfig:
-    """Configuração de modelo"""
+    """Configuração de modelo de detecção"""
     name: str
     type: ModelType
     weights_path: str
     confidence_threshold: float = 0.5
     nms_threshold: float = 0.4
     input_size: Tuple[int, int] = (640, 640)
-    device: str = "auto"  # auto, cpu, cuda, mps
+    device: str = "auto"
     half_precision: bool = False
 
 @dataclass
 class OCRConfig:
     """Configuração de OCR"""
-    type: OCRType
+    type: ModelType
     language: str = "pt"
-    confidence_threshold: float = 0.7
-    use_gpu: bool = True
-    custom_vocabulary: Optional[List[str]] = None
+    confidence_threshold: float = 0.8
+    use_gpu: bool = False
+    use_angle_cls: bool = True
 
 @dataclass
 class PreprocessingConfig:
     """Configuração de pré-processamento"""
     type: PreprocessingType
+    resize_enabled: bool = True
+    target_size: Tuple[int, int] = (640, 640)
     resize_method: str = "bilinear"
+    denoising_enabled: bool = True
+    denoising_method: str = "bilateral"
+    contrast_enhancement: bool = True
+    contrast_method: str = "clahe"
     normalization: bool = True
     augmentation: bool = False
-    denoising: bool = True
-    contrast_enhancement: bool = True
 
 @dataclass
 class PipelineConfig:
-    """Configuração do pipeline de processamento"""
-    enable_preprocessing: bool = True
-    enable_detection: bool = True
-    enable_ocr: bool = True
-    enable_postprocessing: bool = True
-    enable_validation: bool = True
-    max_processing_time: float = 30.0  # segundos
-
-@dataclass
-class VisionArchitectureConfig:
-    """Configuração principal da arquitetura"""
-    
-    # Modelos
-    detection_model: ModelConfig = ModelConfig(
-        name="yolov8x",
-        type=ModelType.YOLO,
-        weights_path="models/yolov8x.pt",
-        confidence_threshold=0.6,
-        input_size=(640, 640)
-    )
-    
-    ocr_model: OCRConfig = OCRConfig(
-        type=OCRType.PADDLEOCR,
-        language="pt",
-        confidence_threshold=0.8
-    )
-    
-    # Pipeline
-    pipeline: PipelineConfig = PipelineConfig()
-    
-    # Pré-processamento
-    preprocessing: PreprocessingConfig = PreprocessingConfig(
-        type=PreprocessingType.AI_ENHANCED,
-        denoising=True,
-        contrast_enhancement=True
-    )
-    
-    # Cache e otimização
+    """Configuração do pipeline"""
+    detection_model: ModelConfig
+    ocr_model: OCRConfig
+    preprocessing: PreprocessingConfig
     enable_cache: bool = True
     cache_size: int = 1000
     enable_async: bool = True
     max_workers: int = 4
-    
-    # Logging e monitoramento
     log_level: str = "INFO"
     enable_metrics: bool = True
     enable_profiling: bool = True
-    
-    # Validação
-    validation_rules: Dict[str, Any] = None
+    validation_rules: Optional[Dict[str, Any]] = None
+
+@dataclass
+class VisionArchitectureConfig:
+    """Configuração principal da arquitetura"""
+    detection_model: ModelConfig
+    ocr_model: OCRConfig
+    preprocessing: PreprocessingConfig
+    enable_cache: bool = True
+    cache_size: int = 1000
+    enable_async: bool = True
+    max_workers: int = 4
+    log_level: str = "INFO"
+    enable_metrics: bool = True
+    enable_profiling: bool = True
+    validation_rules: Optional[Dict[str, Any]] = None
     
     def __post_init__(self):
         """Validação pós-inicialização"""
-        if self.validation_rules is None:
-            self.validation_rules = {
-                "min_plate_size": (50, 50),
-                "max_plate_size": (800, 400),
-                "min_text_length": 3,
-                "max_text_length": 20,
-                "allowed_characters": "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-"
-            }
-
-# Configurações específicas para diferentes cenários
-class ConfigPresets:
-    """Presets de configuração para diferentes cenários"""
-    
-    @staticmethod
-    def production():
-        """Configuração para produção"""
-        return VisionArchitectureConfig(
-            detection_model=ModelConfig(
-                name="yolov8x",
-                type=ModelType.YOLO,
-                weights_path="models/yolov8x.pt",
-                confidence_threshold=0.7,
-                device="cuda"
-            ),
-            ocr_model=OCRConfig(
-                type=OCRType.PADDLEOCR,
-                confidence_threshold=0.85,
-                use_gpu=True
-            ),
-            enable_cache=True,
-            enable_async=True,
-            max_workers=8,
-            log_level="WARNING"
-        )
+        if not self.detection_model:
+            raise ValueError("Modelo de detecção é obrigatório")
+        if not self.ocr_model:
+            raise ValueError("Modelo OCR é obrigatório")
     
     @staticmethod
     def development():
@@ -166,44 +108,117 @@ class ConfigPresets:
                 device="cpu"
             ),
             ocr_model=OCRConfig(
-                type=OCRType.EASYOCR,
+                type=ModelType.PADDLEOCR,
+                language="pt",
                 confidence_threshold=0.7,
                 use_gpu=False
             ),
-            enable_cache=False,
-            enable_async=False,
+            preprocessing=PreprocessingConfig(
+                type=PreprocessingType.BASIC,
+                resize_enabled=True,
+                target_size=(640, 640),
+                denoising_enabled=True,
+                contrast_enhancement=True
+            ),
+            enable_cache=True,
+            enable_async=True,
             max_workers=2,
             log_level="DEBUG"
         )
     
     @staticmethod
-    def edge():
-        """Configuração para edge computing"""
+    def production():
+        """Configuração para produção"""
         return VisionArchitectureConfig(
             detection_model=ModelConfig(
                 name="yolov8n",
                 type=ModelType.YOLO,
                 weights_path="models/yolov8n.pt",
-                confidence_threshold=0.6,
-                device="cpu",
-                half_precision=True
+                confidence_threshold=0.5,
+                device="cpu"
             ),
             ocr_model=OCRConfig(
-                type=OCRType.TESSERACT,
+                type=ModelType.EASYOCR,
+                language="pt",
+                confidence_threshold=0.7,
+                use_gpu=False
+            ),
+            preprocessing=PreprocessingConfig(
+                type=PreprocessingType.BASIC,
+                resize_enabled=True,
+                target_size=(640, 640),
+                denoising_enabled=True,
+                contrast_enhancement=True
+            ),
+            enable_cache=False,
+            enable_async=False,
+            max_workers=2,
+            log_level="INFO"
+        )
+    
+    @staticmethod
+    def edge():
+        """Configuração para dispositivos edge"""
+        return VisionArchitectureConfig(
+            detection_model=ModelConfig(
+                name="yolov8n",
+                type=ModelType.YOLO,
+                weights_path="models/yolov8n.pt",
+                confidence_threshold=0.3,
+                device="cpu",
+                input_size=(320, 320)
+            ),
+            ocr_model=OCRConfig(
+                type=ModelType.TESSERACT,
+                language="pt",
                 confidence_threshold=0.6,
                 use_gpu=False
             ),
-            enable_cache=True,
+            preprocessing=PreprocessingConfig(
+                type=PreprocessingType.BASIC,
+                resize_enabled=True,
+                target_size=(320, 320),
+                denoising_enabled=False,
+                contrast_enhancement=False
+            ),
+            enable_cache=False,
             enable_async=False,
             max_workers=1,
-            log_level="ERROR"
+            log_level="WARNING"
         )
 
+class ConfigPresets:
+    """Presets de configuração predefinidos"""
+    
+    @staticmethod
+    def development():
+        """Preset para desenvolvimento"""
+        return VisionArchitectureConfig.development()
+    
+    @staticmethod
+    def production():
+        """Preset para produção"""
+        return VisionArchitectureConfig.production()
+    
+    @staticmethod
+    def edge():
+        """Preset para dispositivos edge"""
+        return VisionArchitectureConfig.edge()
+    
+    @staticmethod
+    def custom(config_path: str = None):
+        """Preset customizado"""
+        if config_path and os.path.exists(config_path):
+            # TODO: Implementar carregamento de arquivo de configuração
+            pass
+        
+        return VisionArchitectureConfig.development()
+
 # Configuração padrão
-DEFAULT_CONFIG = ConfigPresets.development()
+DEFAULT_CONFIG = VisionArchitectureConfig.development()
 
 def load_config(config_path: str = None) -> VisionArchitectureConfig:
-    """Carrega configuração do arquivo ou usa padrão"""
+    """Carrega configuração de arquivo ou usa padrão"""
     if config_path and os.path.exists(config_path):
         # TODO: Implementar carregamento de arquivo de configuração
         pass

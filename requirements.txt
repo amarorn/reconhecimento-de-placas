@@ -10,6 +10,7 @@
 # Framework Web Principal
 fastapi>=0.104.0
 uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
 
 # Visão Computacional
 opencv-python>=4.8.1
@@ -93,8 +94,12 @@ bandit>=1.7.0
 safety>=2.3.0
 
 # Mocks e Stubs
-unittest-mock>=1.0.0
+# unittest.mock é parte da biblioteca padrão do Python 3.3+
 freezegun>=1.2.0
+
+# Autenticação e Segurança
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
 
 # Relatórios e Cobertura
 coverage>=7.0.0

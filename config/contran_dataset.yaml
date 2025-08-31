@@ -1,0 +1,127 @@
+# Dataset CONTRAN - Placas de Sinalização e Veículos Brasileiros
+# Configuração para treinamento YOLO
+
+# Configurações gerais
+path: ../datasets/raw_brazilian
+train: images/train
+val: images/val
+test: images/test
+
+# Número de classes
+nc: 53
+
+# Nomes das classes
+names:
+  # Placas de Regulamentação (R-1 a R-40) - Classes 0-50
+  0: R-1_parada_obrigatoria
+  1: R-2_de_preferencia
+  2: R-3_sentido_proibido
+  3: R-4a_proibido_virar_esquerda
+  4: R-4b_proibido_virar_direita
+  5: R-5a_proibido_retornar_esquerda
+  6: R-5b_proibido_retornar_direita
+  7: R-6a_proibido_estacionar
+  8: R-6b_estacionamento_regulamentado
+  9: R-6c_proibido_parar_estacionar
+  10: R-7_proibido_ultrapassar
+  11: R-8a_proibido_mudar_faixa_esq_dir
+  12: R-8b_proibido_mudar_faixa_dir_esq
+  13: R-9_proibido_transito_caminhoes
+  14: R-10_proibido_transito_veiculos_automotores
+  15: R-11_proibido_transito_veiculos_tracao_animal
+  16: R-12_proibido_transito_bicicletas
+  17: R-13_proibido_transito_tratores_maquinas
+  18: R-14_peso_bruto_total_maximo_permitido
+  19: R-15_altura_maxima_permitida
+  20: R-16_largura_maxima_permitida
+  21: R-17_peso_maximo_permitido_por_eixo
+  22: R-18_comprimento_maximo_permitido
+  23: R-19_velocidade_maxima_permitida
+  24: R-20_proibido_acionar_buzina
+  25: R-21_alfandega
+  26: R-22_uso_obrigatorio_corrente
+  27: R-23_conserve_se_direita
+  28: R-24a_sentido_circulacao_via_pista
+  29: R-24b_passagem_obrigatoria
+  30: R-25a_vire_esquerda
+  31: R-25b_vire_direita
+  32: R-25c_siga_frente_esquerda
+  33: R-25d_siga_frente_direita
+  34: R-26_siga_frente
+  35: R-27_onibus_caminhoes_mantenham_se_direita
+  36: R-28_duplo_sentido_circulacao
+  37: R-29_proibido_transito_pedestres
+  38: R-30_pedestre_ande_esquerda
+  39: R-31_pedestre_ande_direita
+  40: R-32_circulacao_exclusiva_onibus
+  41: R-33_sentido_circulacao_rotatoria
+  42: R-34_circulacao_exclusiva_bicicletas
+  43: R-35a_ciclista_transite_esquerda
+  44: R-35b_ciclista_transite_direita
+  45: R-36a_ciclistas_esquerda_pedestres_direita
+  46: R-36b_pedestres_esquerda_ciclistas_direita
+  47: R-37_proibido_transito_motocicletas
+  48: R-38_proibido_transito_onibus
+  49: R-39_circulacao_exclusiva_caminhao
+  50: R-40_transito_proibido_carros_mao
+  
+  # Placas de Veículos - Classes 51-52
+  51: placa_veiculo
+  52: veiculo
+
+# Configurações de treinamento
+epochs: 100
+batch_size: 16
+img_size: 640
+
+# Hiperparâmetros
+lr0: 0.01
+lrf: 0.1
+momentum: 0.937
+weight_decay: 0.0005
+warmup_epochs: 3.0
+warmup_momentum: 0.8
+warmup_bias_lr: 0.1
+box: 0.05
+cls: 0.5
+dfl: 1.5
+pose: 12.0
+kobj: 2.0
+label_smoothing: 0.0
+
+# Augmentações
+hsv_h: 0.015
+hsv_s: 0.7
+hsv_v: 0.4
+degrees: 0.0
+translate: 0.1
+scale: 0.5
+shear: 0.0
+perspective: 0.0
+flipud: 0.0
+fliplr: 0.5
+mosaic: 1.0
+mixup: 0.0
+copy_paste: 0.0
+
+# Configurações de validação
+val: true
+save_period: -1
+save_json: false
+save_hybrid: false
+conf: 0.001
+iou: 0.6
+max_det: 300
+half: true
+dnn: false
+plots: true
+
+# Configurações de exportação
+export: true
+optimize: false
+int8: false
+dynamic: false
+simplify: false
+opset: 11
+workspace: 4
+nms: false
