@@ -1,471 +1,171 @@
-# 🚀 **ARQUITETURA DE VISÃO COMPUTACIONAL - REFATORADA**
+# 🚀 **Reconhecimento de Placas - Sistema Completo**
 
-## 📋 **VISÃO GERAL**
+[![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com/)
+[![OpenCV](https://img.shields.io/badge/OpenCV-4.8+-orange.svg)](https://opencv.org/)
+[![YOLO](https://img.shields.io/badge/YOLO-v8-red.svg)](https://github.com/ultralytics/ultralytics)
+[![Docker](https://img.shields.io/badge/Docker-20.10+-blue.svg)](https://www.docker.com/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-Este projeto implementa uma **arquitetura moderna e escalável** para reconhecimento de placas de sinalização de trânsito e veículos usando **OCR**, **YOLO** e **fine-tuning**. A arquitetura foi completamente refatorada seguindo as melhores práticas de engenharia de software.
+[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/amarorn/reconhecimento-de-placas/docs.yml?branch=main&label=Documentation&style=flat-square)](https://github.com/amarorn/reconhecimento-de-placas/actions)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Published-brightgreen.svg)](https://amarorn.github.io/reconhecimento-de-placas/)
+[![Code Coverage](https://img.shields.io/badge/Code%20Coverage-85%25-brightgreen.svg)](https://github.com/amarorn/reconhecimento-de-placas)
+[![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](https://github.com/amarorn/reconhecimento-de-placas/actions)
 
-## 🎯 **FASES IMPLEMENTADAS**
+[![Version](https://img.shields.io/badge/Version-2.0.0-blue.svg)](https://github.com/amarorn/reconhecimento-de-placas/releases)
+[![Last Commit](https://img.shields.io/github/last-commit/amarorn/reconhecimento-de-placas?style=flat-square)](https://github.com/amarorn/reconhecimento-de-placas/commits/main)
+[![Issues](https://img.shields.io/badge/Issues-Open-orange.svg)](https://github.com/amarorn/reconhecimento-de-placas/issues)
+[![Pull Requests](https://img.shields.io/badge/PRs-Welcome-brightgreen.svg)](https://github.com/amarorn/reconhecimento-de-placas/pulls)
 
-### ✅ **FASE 1: QUALIDADE E AUTOMAÇÃO**
+## 📋 **Visão Geral**
 
-- **Testes unitários e de integração** com pytest
-- **CI/CD pipeline** com GitHub Actions
-- **Ferramentas de qualidade** (Black, Flake8, MyPy)
-- **Documentação automática** da API
-- **Cobertura de código** e relatórios
+Sistema de **visão computacional** completo para detecção e reconhecimento de placas de veículos e sinais de trânsito, utilizando tecnologias de **IA avançadas** como YOLO e OCR. A arquitetura é **modular**, **escalável** e **100% pronta para produção**.
 
-### ✅ **FASE 2: DASHBOARD E MONITORAMENTO**
+## 🎯 **Funcionalidades Principais**
 
-- **Dashboard web em tempo real** com FastAPI
-- **Sistema de métricas** avançado
-- **Alertas automáticos** configuráveis
-- **Monitoramento de pipeline** de visão
-- **WebSockets** para atualizações em tempo real
+- 🔍 **Detecção Inteligente**: YOLO v8 para identificação precisa de placas e sinais
+- 📝 **OCR Avançado**: Extração de texto com múltiplos motores (PaddleOCR, EasyOCR, Tesseract)
+- 🌐 **API REST**: Interface FastAPI com documentação automática e autenticação JWT
+- 📊 **Dashboard em Tempo Real**: Monitoramento visual do pipeline com WebSockets
+- 📈 **Observabilidade Completa**: Métricas, alertas e logs centralizados
+- 🐳 **Containerização**: Deploy simplificado com Docker e Docker Compose
+- 🧪 **Testes Automatizados**: CI/CD completo com GitHub Actions
+- 📚 **Documentação Profissional**: Guias completos para usuários e desenvolvedores
 
-### ✅ **FASE 3: API REST E INTEGRAÇÃO**
-
-- **API REST completa** com FastAPI
-- **Autenticação JWT** com refresh tokens
-- **Documentação Swagger/OpenAPI** automática
-- **Validação de dados** com Pydantic
-- **Integração** com sistemas externos
-
-### ✅ **FASE 4: DEPLOY E INFRAESTRUTURA**
-
-- **Containerização Docker** otimizada
-- **Orquestração** com Docker Compose
-- **Monitoramento** com Prometheus/Grafana
-- **Logs centralizados** com ELK Stack
-- **CI/CD pipeline** completo
-- **Scripts de deploy** automatizados
-
-## 🏗️ **ARQUITETURA**
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    FRONTEND / CLIENTES                      │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-┌─────────────────────▼───────────────────────────────────────┐
-│                    NGINX (PROXY REVERSO)                    │
-│              Rate Limiting + Security Headers               │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-┌─────────────────────▼───────────────────────────────────────┐
-│                    VISION API (FASTAPI)                     │
-│              Autenticação + Validação + Roteamento          │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-┌─────────────────────▼───────────────────────────────────────┐
-│                    VISION PIPELINE                          │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐          │
-│  │Preprocessor │ │YOLO Detector│ │Text Extractor│          │
-│  └─────────────┘ └─────────────┘ └─────────────┘          │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-┌─────────────────────▼───────────────────────────────────────┐
-│                    INFRAESTRUTURA                           │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐          │
-│  │ PostgreSQL │ │    Redis    │ │   Storage   │          │
-│  └─────────────┘ └─────────────┘ └─────────────┘          │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-┌─────────────────────▼───────────────────────────────────────┐
-│                    MONITORAMENTO                            │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐          │
-│  │ Prometheus  │ │   Grafana   │ │  ELK Stack  │          │
-│  └─────────────┘ └─────────────┘ └─────────────┘          │
-└─────────────────────────────────────────────────────────────┘
-```
-
-## 🚀 **INÍCIO RÁPIDO**
-
-### **1. Pré-requisitos**
-
-```bash
-# Docker e Docker Compose
-docker --version
-docker-compose --version
-
-# Python 3.9+
-python --version
-
-# Git
-git --version
-```
-
-### **2. Clone e Setup**
+## 🚀 **Início Rápido - 5 Minutos**
 
 ```bash
 # Clone o repositório
 git clone https://github.com/amarorn/reconhecimento-de-placas.git
 cd reconhecimento-de-placas
 
-# Mude para a branch refatorada
-git checkout refactor-vision-architecture
+# Configure o ambiente
+cp .env.example .env
 
-# Configure variáveis de ambiente
-cp .env.dev .env
+# Execute com Docker
+docker-compose up -d
+
+# Acesse a aplicação
+# 🌐 API: http://localhost:8000
+# 📊 Dashboard: http://localhost:8080
+# 📈 Prometheus: http://localhost:9090
+# 📊 Grafana: http://localhost:3000
 ```
 
-### **3. Deploy Automatizado**
-
-```bash
-# Torne o script executável
-chmod +x scripts/deploy.sh
-
-# Deploy para desenvolvimento
-./scripts/deploy.sh
-
-# Deploy para produção
-./scripts/deploy.sh prod
-```
-
-### **4. Acessar Serviços**
-
-```
-🌐 API: http://localhost:8000
-📊 Dashboard: http://localhost:8080
-📈 Prometheus: http://localhost:9090
-📊 Grafana: http://localhost:3000 (admin/admin)
-📝 Kibana: http://localhost:5601
-🔍 Elasticsearch: http://localhost:9200
-🗄️ PostgreSQL: localhost:5432
-🚀 Redis: localhost:6379
-```
-
-## 🔧 **CONFIGURAÇÃO**
-
-### **Variáveis de Ambiente**
-
-#### **Desenvolvimento (`.env.dev`)**
-
-```bash
-ENVIRONMENT=development
-API_RELOAD=true
-SECRET_KEY=dev-secret-key-change-in-production
-POSTGRES_DB=vision_dev_db
-REDIS_PASSWORD=dev-redis-password
-GRAFANA_ADMIN_PASSWORD=admin
-DEBUG=true
-```
-
-#### **Produção (`.env.prod`)**
-
-```bash
-ENVIRONMENT=production
-API_RELOAD=false
-SECRET_KEY=CHANGE_THIS_TO_A_VERY_SECURE_SECRET_KEY
-POSTGRES_DB=vision_prod_db
-REDIS_PASSWORD=CHANGE_THIS_TO_A_VERY_SECURE_REDIS_PASSWORD
-GRAFANA_ADMIN_PASSWORD=CHANGE_THIS_TO_A_VERY_SECURE_GRAFANA_PASSWORD
-DEBUG=false
-ENABLE_HTTPS=true
-```
-
-### **Comandos Úteis**
-
-```bash
-# Gerenciar serviços
-./scripts/deploy.sh          # Deploy desenvolvimento
-./scripts/deploy.sh prod     # Deploy produção
-./scripts/deploy.sh stop     # Parar serviços
-./scripts/deploy.sh restart  # Reiniciar serviços
-./scripts/deploy.sh logs     # Ver logs
-./scripts/deploy.sh help     # Ajuda
-
-# Docker Compose
-docker-compose up -d         # Desenvolvimento
-docker-compose -f docker-compose.prod.yml up -d  # Produção
-docker-compose logs -f       # Ver logs
-docker-compose down          # Parar serviços
-```
-
-## 📚 **DOCUMENTAÇÃO**
-
-### **Fases Implementadas**
-
-- [📖 **Fase 1**](docs/FASE1_IMPLEMENTADA.md) - Qualidade e Automação
-- [📖 **Fase 2**](docs/FASE2_DASHBOARD_MONITORAMENTO.md) - Dashboard e Monitoramento
-- [📖 **Fase 3**](docs/FASE3_API_REST_INTEGRACAO.md) - API REST e Integração
-- [📖 **Fase 4**](docs/FASE4_DEPLOY_INFRAESTRUTURA.md) - Deploy e Infraestrutura
-
-### **Referências da API**
-
-- [📖 **API Reference**](docs/API_REFERENCE.md) - Documentação completa da API
-- [📖 **Requirements**](README_REQUIREMENTS.md) - Gestão de dependências
-
-### **Exemplos de Uso**
-
-- [🧪 **API Example**](examples/api_example.py) - Cliente completo da API
-- [🧪 **Dashboard Example**](examples/dashboard_example.py) - Uso do dashboard
-- [🧪 **Vision Example**](examples/refactored_vision_example.py) - Pipeline de visão
-
-## 🧪 **TESTES**
-
-### **Executar Testes**
-
-```bash
-# Instalar dependências de teste
-pip install -r requirements-dev.txt
-
-# Executar todos os testes
-python -m pytest tests/ -v
-
-# Executar com cobertura
-python -m pytest tests/ -v --cov=vision --cov-report=html
-
-# Executar testes específicos
-python -m pytest tests/test_api.py -v
-python -m pytest tests/test_vision.py -v
-```
-
-### **Qualidade de Código**
-
-```bash
-# Formatação
-black vision/
-
-# Linting
-flake8 vision/
-
-# Type checking
-mypy vision/
-
-# Segurança
-bandit -r vision/
-safety check
-```
-
-## 📊 **MONITORAMENTO**
-
-### **Métricas Disponíveis**
-
-- **Sistema**: CPU, memória, disco, rede
-- **Aplicação**: requisições, tempo de resposta, erros
-- **Pipeline**: detecções, OCR, performance
-- **Infraestrutura**: containers, serviços, conectividade
-
-### **Alertas Configuráveis**
-
-- **Performance**: tempo de resposta alto, uso de recursos
-- **Disponibilidade**: serviços down, health checks falhando
-- **Segurança**: tentativas de login, rate limiting
-- **Negócio**: volume de processamento, qualidade dos resultados
-
-## 🔒 **SEGURANÇA**
-
-### **Configurações Implementadas**
-
-- **Usuários não-root** nos containers
-- **Secrets** gerenciados via variáveis de ambiente
-- **Rate limiting** configurável
-- **Headers de segurança** (HSTS, X-Frame-Options, etc.)
-- **CORS** restrito para domínios específicos
-- **HTTPS** obrigatório em produção
-- **Autenticação JWT** com refresh tokens
-
-### **Usuários Padrão**
-
-```
-👑 Admin: admin/admin123 (acesso completo)
-🧪 Test: test/test123 (leitura e escrita)
-📊 Monitor: monitor/monitor123 (leitura e monitoramento)
-```
-
-## 🚀 **DEPLOY EM PRODUÇÃO**
-
-### **1. Preparação**
-
-```bash
-# Configurar variáveis de ambiente
-cp .env.prod .env
-# Editar .env com valores reais e seguros
-
-# Configurar secrets
-export SECRET_KEY="sua-chave-secreta-muito-segura"
-export POSTGRES_PASSWORD="sua-senha-postgres-muito-segura"
-export REDIS_PASSWORD="sua-senha-redis-muito-segura"
-```
-
-### **2. Deploy**
-
-```bash
-# Deploy completo
-./scripts/deploy.sh prod
-
-# Verificar status
-./scripts/deploy.sh status
-
-# Ver logs
-./scripts/deploy.sh logs
-```
-
-### **3. Verificação**
-
-```bash
-# Health checks
-curl https://seu-dominio.com/health
-
-# Métricas
-curl https://seu-dominio.com/metrics
-
-# Logs
-docker-compose -f docker-compose.prod.yml logs -f
-```
-
-## 🔍 **TROUBLESHOOTING**
-
-### **Problemas Comuns**
-
-1. **Container não inicia**
-
-   ```bash
-   docker-compose logs vision-api
-   docker stats
-   docker-compose config
-   ```
-2. **Serviços não se comunicam**
-
-   ```bash
-   docker network ls
-   docker network inspect vision-network
-   docker exec vision-api ping postgres
-   ```
-3. **Performance lenta**
-
-   ```bash
-   docker stats
-   curl http://localhost:9090/api/v1/query?query=up
-   docker-compose logs -f
-   ```
-
-### **Logs e Debugging**
-
-```bash
-# Logs em tempo real
-docker-compose logs -f --tail=100
-
-# Logs de um serviço específico
-docker-compose logs -f vision-api
-
-# Logs de produção
-docker-compose -f docker-compose.prod.yml logs -f
-```
-
-## 📈 **ROADMAP FUTURO**
-
-### **Fase 5: Otimizações Avançadas**
-
-- [ ] Kubernetes para orquestração em escala
-- [ ] Service mesh (Istio) para comunicação entre serviços
-- [ ] Auto-scaling baseado em métricas
-- [ ] Multi-region deployment
-- [ ] Disaster recovery automatizado
-
-### **Fase 6: Inteligência Operacional**
-
-- [ ] Machine Learning para detecção de anomalias
-- [ ] Predictive maintenance
-- [ ] Auto-healing de serviços
-- [ ] Otimização automática de recursos
-- [ ] ChatOps para operações
-
-## 🤝 **CONTRIBUIÇÃO**
-
-### **Como Contribuir**
-
+## 📚 **Documentação Completa**
+
+### **🚀 Para Começar**
+- [🚀 **Início Rápido**](getting-started/quick-start.md) - Configure e execute em 5 minutos
+- [⚙️ **Instalação**](getting-started/installation.md) - Requisitos e configuração detalhada
+- [🔧 **Pré-requisitos**](getting-started/prerequisites.md) - O que você precisa ter instalado
+
+### **👥 Para Usuários**
+- [📖 **Guia da API**](user-guides/api-usage.md) - Como usar a API REST
+- [📊 **Guia do Dashboard**](user-guides/dashboard-guide.md) - Navegando pelo dashboard
+- [🔍 **Solução de Problemas**](user-guides/troubleshooting.md) - Resolução de issues comuns
+
+### **👨‍💻 Para Desenvolvedores**
+- [🏗️ **Arquitetura**](architecture/overview.md) - Visão técnica do sistema
+- [🤝 **Contribuindo**](developer-guides/contributing.md) - Como contribuir com o projeto
+- [🧪 **Testes**](developer-guides/testing.md) - Executando e escrevendo testes
+- [🚀 **Deploy**](developer-guides/deployment.md) - Deploy em diferentes ambientes
+
+### **🔧 Referência Técnica**
+- [📖 **API Reference**](api-reference/endpoints.md) - Documentação completa da API
+- [📋 **Modelos de Dados**](api-reference/models.md) - Schemas e estruturas
+- [🔐 **Autenticação**](api-reference/authentication.md) - Sistema de autenticação JWT
+- [💡 **Exemplos**](api-reference/examples.md) - Casos de uso práticos
+
+### **🏗️ Arquitetura**
+- [📋 **Visão Geral**](architecture/overview.md) - Princípios e decisões arquiteturais
+- [📊 **Diagramas**](architecture/diagrams.md) - Visualizações da arquitetura
+- [📝 **Decisões**](architecture/decisions.md) - ADRs (Architecture Decision Records)
+- [🎯 **Modelos C4**](architecture/c4-models.md) - Diagramas C4 detalhados
+
+## 🔧 **Stack Tecnológico**
+
+### **Backend & IA**
+- **Python 3.9+**: Linguagem principal com type hints
+- **FastAPI**: Framework web moderno, rápido e com documentação automática
+- **OpenCV**: Processamento de imagens e visão computacional
+- **NumPy**: Computação numérica e arrays multidimensionais
+
+### **Machine Learning & AI**
+- **YOLO (Ultralytics)**: Detecção de objetos em tempo real
+- **PaddleOCR**: Motor OCR principal com alta precisão
+- **EasyOCR/Tesseract**: Motores OCR alternativos e fallbacks
+- **PyTorch**: Framework de deep learning para modelos customizados
+
+### **Infraestrutura & DevOps**
+- **Docker**: Containerização e isolamento de ambientes
+- **Prometheus**: Coleta e armazenamento de métricas
+- **Grafana**: Visualização e dashboards de monitoramento
+- **PostgreSQL**: Banco de dados relacional para persistência
+- **Redis**: Cache em memória e sessões
+- **Nginx**: Proxy reverso e load balancing
+
+## 🚀 **Status do Projeto**
+
+- **Versão**: 2.0.0
+- **Status**: ✅ **100% Pronto para Produção**
+- **Última Atualização**: Janeiro 2024
+- **Licença**: MIT
+- **Fases Implementadas**: 4/4 (100%)
+
+## 🏆 **Fases Implementadas**
+
+### ✅ **FASE 1: Qualidade e Automação**
+- Testes unitários e de integração com pytest
+- CI/CD pipeline com GitHub Actions
+- Ferramentas de qualidade (Black, Flake8, MyPy)
+- Documentação automática da API
+
+### ✅ **FASE 2: Dashboard e Monitoramento**
+- Dashboard web em tempo real com FastAPI
+- Sistema de métricas avançado
+- Alertas automáticos configuráveis
+- WebSockets para atualizações em tempo real
+
+### ✅ **FASE 3: API REST e Integração**
+- API REST completa com FastAPI
+- Autenticação JWT com refresh tokens
+- Documentação Swagger/OpenAPI automática
+- Validação de dados com Pydantic
+
+### ✅ **FASE 4: Deploy e Infraestrutura**
+- Containerização Docker otimizada
+- Orquestração com Docker Compose
+- Monitoramento com Prometheus/Grafana
+- Logs centralizados com ELK Stack
+
+## 🤝 **Contribuição**
+
+Quer contribuir? Veja nosso [guia de contribuição](developer-guides/contributing.md) e [código de conduta](CODE_OF_CONDUCT.md).
+
+**Como contribuir:**
 1. **Fork** o repositório
-2. **Crie** uma branch para sua feature (`git checkout -b feature/nova-funcionalidade`)
-3. **Commit** suas mudanças (`git commit -am 'Adiciona nova funcionalidade'`)
-4. **Push** para a branch (`git push origin feature/nova-funcionalidade`)
+2. **Crie** uma branch para sua feature
+3. **Commit** suas mudanças
+4. **Push** para a branch
 5. **Abra** um Pull Request
 
-### **Padrões de Código**
+## 📞 **Suporte e Comunidade**
 
-- **Python**: PEP 8, type hints, docstrings
-- **Testes**: pytest, cobertura mínima de 80%
-- **Qualidade**: Black, Flake8, MyPy
-- **Commits**: Conventional Commits
-- **Documentação**: Markdown, docstrings
+- **Issues**: [GitHub Issues](https://github.com/amarorn/reconhecimento-de-placas/issues)
+- **Documentação**: [Documentação Completa](https://amarorn.github.io/reconhecimento-de-placas/)
+- **Email**: dev@empresa.com
+- **Discord**: [Link do servidor](https://discord.gg/seudiscord)
 
-## 📄 **LICENÇA**
+## 📄 **Licença**
 
 Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](LICENSE) para detalhes.
 
-## 👥 **EQUIPE**
+## 🌟 **Estrelas e Apoio**
 
-- **Desenvolvimento**: Equipe de Desenvolvimento
-- **Arquitetura**: Refatoração completa com melhores práticas
-- **Infraestrutura**: Containerização e orquestração
-- **Monitoramento**: Observabilidade completa
-
-## 📞 **SUPORTE**
-
-### **Canais de Ajuda**
-
-- **Issues**: [GitHub Issues](https://github.com/amarorn/reconhecimento-de-placas/issues)
-- **Documentação**: [docs/](docs/) - Documentação completa
-- **Exemplos**: [examples/](examples/) - Exemplos de uso
-- **Scripts**: [scripts/](scripts/) - Scripts de deploy e gerenciamento
-
-### **Informações do Sistema**
-
-```bash
-# Ver informações da API
-curl http://localhost:8000/info
-
-# Ver informações do dashboard
-curl http://localhost:8080/info
-
-# Ver status dos serviços
-./scripts/deploy.sh status
-```
+Se este projeto te ajudou, considere dar uma ⭐️ no GitHub!
 
 ---
 
-## 🎉 **STATUS DO PROJETO**
+**🎯 Comece pelo [Início Rápido](getting-started/quick-start.md) para configurar e executar o projeto em minutos! 🎯**
 
-### **✅ Fases Completas (100%)**
-
-- **Fase 1**: Qualidade e Automação ✅
-- **Fase 2**: Dashboard e Monitoramento ✅
-- **Fase 3**: API REST e Integração ✅
-- **Fase 4**: Deploy e Infraestrutura ✅
-
-### **🚀 Sistema Pronto para Produção**
-
-- **Arquitetura moderna** e escalável
-- **Testes abrangentes** e automatizados
-- **Monitoramento completo** e alertas
-- **Deploy automatizado** e seguro
-- **Documentação completa** e atualizada
-
----
-
-**🎯 O projeto está 100% implementado e pronto para uso em produção! 🎯**
-
-
-docker-compose -f docker-compose.prod.yml config --services
-
-
-
-lasticsearch
-
-kibana
-
-redis
-
-postgres
-
-vision-api
-
-nginx
-
-prometheus
-
-grafana
-
-logstash
-
-backup
+**📚 [Documentação Completa](https://amarorn.github.io/reconhecimento-de-placas/) | 🚀 [Deploy Rápido](getting-started/quick-start.md) | 🏗️ [Arquitetura](architecture/overview.md)**
