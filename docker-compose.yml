@@ -202,7 +202,7 @@ services:
       dockerfile: Dockerfile.frontend
     container_name: vision-frontend-dev
     ports:
-      - "3000:3000"
+      - "3002:3000"
     environment:
       - REACT_APP_API_URL=http://localhost:8000
       - REACT_APP_ENVIRONMENT=development
