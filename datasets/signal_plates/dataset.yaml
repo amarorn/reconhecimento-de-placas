@@ -1,25 +1,22 @@
-{
-  "path": "/Users/amaro/Documents/estudo/reconhecimento-de-placas/datasets/signal_plates",
-  "train": "images/train",
-  "val": "images/val",
-  "test": "images/test",
-  "nc": 16,
-  "names": [
-    "stop_sign",
-    "yield_sign",
-    "speed_limit",
-    "no_parking",
-    "one_way",
-    "pedestrian_crossing",
-    "school_zone",
-    "construction",
-    "warning",
-    "information",
-    "street_sign",
-    "building_sign",
-    "traffic_light",
-    "railroad_crossing",
-    "bicycle_lane",
-    "bus_lane"
-  ]
-}
+path: datasets/signal_plates
+train: images/train
+val: images/val
+test: images/test
+nc: 16
+names:
+  - stop_sign
+  - yield_sign
+  - speed_limit
+  - no_parking
+  - one_way
+  - pedestrian_crossing
+  - school_zone
+  - construction
+  - warning
+  - information
+  - street_sign
+  - building_sign
+  - traffic_light
+  - railroad_crossing
+  - bicycle_lane
+  - bus_lane
