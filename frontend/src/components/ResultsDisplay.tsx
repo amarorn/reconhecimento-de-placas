@@ -136,6 +136,37 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     );
   }
 
+  // Verificar se há erro na resposta
+  if (error) {
+    const isYoloError = error.includes('No such file or directory') || error.includes('models/');
+    
+    return (
+      <Card>
+        <CardContent>
+          <Alert severity="error" sx={{ mb: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              Erro na Detecção
+            </Typography>
+            <Typography variant="body2">
+              {isYoloError 
+                ? 'Modelos YOLO não encontrados. O sistema está aguardando a implementação dos modelos de detecção.'
+                : error
+              }
+            </Typography>
+          </Alert>
+          {isYoloError && (
+            <Alert severity="info">
+              <Typography variant="body2">
+                <strong>Status do Sistema:</strong> O backend está funcionando corretamente, mas os modelos de detecção YOLO ainda não foram implementados. 
+                Os dados mockados foram removidos para garantir transparência.
+              </Typography>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (!results) {
     return (
       <Card>
