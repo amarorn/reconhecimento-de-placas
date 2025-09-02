@@ -134,7 +134,7 @@ class SignalPlateResponse(BaseResponse):
 
 
 class VehiclePlateRequest(BaseRequest):
-    vehicle_type: VehicleType = Field(..., description="Tipo de veículo para detecção")
+    vehicle_type: Optional[VehicleType] = Field(None, description="Tipo de veículo para detecção")
 
 
 class VehiclePlateInfo(BaseModel):
