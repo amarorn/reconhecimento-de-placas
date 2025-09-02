@@ -53,26 +53,7 @@ async def health_check():
 # Router de Visão Computacional
 vision_router = APIRouter(prefix="/api/v1/vision", tags=["Vision"])
 
-class MockPipeline:
-    def get_last_processing_time(self):
-        return 0.5
-    
-    def get_total_processed_images(self):
-        return 100
-    
-    def get_average_processing_time(self):
-        return 0.3
-    
-    def get_memory_usage(self):
-        return 0.25
-    
-    def get_cpu_usage(self):
-        return 0.15
-    
-    def process_upload(self, file):
-        return f"img_{int(time.time())}"
-
-pipeline = MockPipeline()
+# Pipeline real será implementado quando os modelos YOLO estiverem disponíveis
 
 @vision_router.post("/detect/signal-plates", response_model=SignalPlateResponse)
 async def detect_signal_plates(
@@ -129,23 +110,7 @@ async def detect_signal_plates(
                 }
                 api_detections.append(api_detection)
             
-            # Se não detectou nada, retornar dados mock variados
-            if not api_detections:
-                import random
-                mock_types = ["stop", "yield", "speed_limit", "no_parking", "one_way", "pedestrian_crossing"]
-                mock_texts = ["PARE", "DÊ A PREFERÊNCIA", "60", "PROIBIDO ESTACIONAR", "MÃO ÚNICA", "ATRAVESSAMENTO"]
-                
-                selected_type = random.choice(mock_types)
-                selected_text = random.choice(mock_texts)
-                
-                api_detections = [
-                    {
-                        "bbox": {"x1": 150, "y1": 200, "x2": 300, "y2": 250},
-                        "confidence": round(random.uniform(0.7, 0.95), 2),
-                        "plate_type": selected_type,
-                        "text": selected_text
-                    }
-                ]
+            # Se não detectou nada, retornar lista vazia
             
             return SignalPlateResponse(
                 success=True,
@@ -157,32 +122,10 @@ async def detect_signal_plates(
             )
             
         except Exception as detection_error:
-            logger.warning(f"Erro no detector real, usando dados mock: {detection_error}")
-            
-            # Fallback para dados mock variados
-            import random
-            mock_types = ["stop", "yield", "speed_limit", "no_parking", "one_way", "pedestrian_crossing"]
-            mock_texts = ["PARE", "DÊ A PREFERÊNCIA", "60", "PROIBIDO ESTACIONAR", "MÃO ÚNICA", "ATRAVESSAMENTO"]
-            
-            selected_type = random.choice(mock_types)
-            selected_text = random.choice(mock_texts)
-            
-            mock_detections = [
-                {
-                    "bbox": {"x1": 150, "y1": 200, "x2": 300, "y2": 250},
-                    "confidence": round(random.uniform(0.7, 0.95), 2),
-                    "plate_type": selected_type,
-                    "text": selected_text
-                }
-            ]
-            
-            return SignalPlateResponse(
-                success=True,
-                message="Placas de sinalização detectadas com sucesso (modo simulação)",
-                timestamp=datetime.utcnow(),
-                image_id=f"img_{int(time.time())}",
-                detections=mock_detections,
-                total_detections=len(mock_detections)
+            logger.error(f"Erro no detector: {detection_error}")
+            raise HTTPException(
+                status_code=500, 
+                detail=f"Erro na detecção: {str(detection_error)}"
             )
         
     except Exception as e:
@@ -337,33 +280,7 @@ async def detect_vehicle_plates(
                         }
                         api_detections.append(api_detection)
             
-            # Se não detectou nada, retornar dados mock variados
-            if not api_detections:
-                import random
-                mock_plates = ["ABC1234", "XYZ9876", "DEF4567", "GHI8901", "JKL2345"]
-                mock_states = ["SP", "RJ", "MG", "RS", "PR", "SC", "BA", "GO"]
-                mock_vehicles = ["car", "truck", "motorcycle", "bus", "van"]
-                
-                selected_plate = random.choice(mock_plates)
-                selected_state = random.choice(mock_states)
-                selected_vehicle = random.choice(mock_vehicles)
-                
-                api_detections = [
-                    {
-                        "vehicle_bbox": {"x1": 100, "y1": 150, "x2": 400, "y2": 300},
-                        "plate_bbox": {"x1": 150, "y1": 200, "x2": 300, "y2": 250},
-                        "vehicle_confidence": round(random.uniform(0.85, 0.98), 2),
-                        "plate_confidence": round(random.uniform(0.80, 0.95), 2),
-                        "plate_info": {
-                            "bbox": {"x1": 150, "y1": 200, "x2": 300, "y2": 250},
-                            "confidence": round(random.uniform(0.80, 0.95), 2),
-                            "plate_number": selected_plate,
-                            "vehicle_type": selected_vehicle,
-                            "country": "Brasil",
-                            "state": selected_state
-                        }
-                    }
-                ]
+            # Se não detectou nada, retornar lista vazia
             
             return VehiclePlateResponse(
                 success=True,

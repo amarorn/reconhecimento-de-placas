@@ -91,10 +91,10 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           />
         </Box>
         <Typography variant="body2" color="text.secondary" gutterBottom>
-          <strong>Classe:</strong> {detection.class_name}
+          <strong>Classe:</strong> {detection.class_name || 'N/A'}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          <strong>Área:</strong> [{detection.bbox.x1}, {detection.bbox.y1}, {detection.bbox.x2}, {detection.bbox.y2}]
+          <strong>Área:</strong> {detection.bbox ? `[${detection.bbox.x1}, ${detection.bbox.y1}, ${detection.bbox.x2}, ${detection.bbox.y2}]` : 'N/A'}
         </Typography>
         <Box sx={{ mt: 1 }}>
           <LinearProgress
