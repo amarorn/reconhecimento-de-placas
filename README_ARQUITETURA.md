@@ -165,6 +165,24 @@ Testes:
 bash run_tests.sh
 ```
 
+### Execução via Kedro
+
+Instale as dependências (inclui Kedro):
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Rode o pipeline Kedro para uma imagem:
+```bash
+python scripts/run_kedro_pipeline.py caminho/para/imagem.jpg
+```
+
+Configurações do pipeline Kedro:
+- Parâmetros em `conf/base/parameters.yml`
+- Catálogo de datasets em `conf/base/catalog.yml`
+- Nós e pipeline em `vision/kedro_pipeline/`
+
 ### Finalidades e casos de uso
 
 - Vigilância e fiscalização: leitura de placas e sinais para auditoria/automação
