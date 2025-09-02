@@ -1,0 +1,47 @@
+# Dockerfile para Frontend React
+# =============================
+
+# Estágio de build
+FROM node:18-alpine AS builder
+
+# Metadados
+LABEL maintainer="Equipe de Desenvolvimento"
+LABEL version="2.0.0"
+LABEL description="Frontend React com TypeScript para Sistema de Visão Computacional"
+
+# Definir diretório de trabalho
+WORKDIR /app
+
+# Copiar arquivos de dependências
+COPY frontend/package*.json ./
+
+# Instalar dependências
+RUN npm ci --only=production
+
+# Copiar código fonte
+COPY frontend/ .
+
+# Build da aplicação
+RUN npm run build
+
+# Estágio de produção
+FROM nginx:alpine
+
+# Copiar configuração customizada do Nginx
+COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
+
+# Copiar arquivos buildados
+COPY --from=builder /app/build /usr/share/nginx/html
+
+# Criar diretório para logs
+RUN mkdir -p /var/log/nginx
+
+# Expor porta
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3000 || exit 1
+
+# Comando padrão
+CMD ["nginx", "-g", "daemon off;"]
