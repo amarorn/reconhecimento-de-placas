@@ -43,7 +43,8 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   loading,
   error,
 }) => {
-  const getDetectionIcon = (className: string) => {
+  const getDetectionIcon = (className: string | undefined) => {
+    if (!className) return '❓';
     switch (className.toLowerCase()) {
       case 'license_plate':
         return '🚗';
