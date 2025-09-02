@@ -457,9 +457,8 @@
         let authToken = null;
         let currentFileType = 'image';
         
-        // Usar proxy interno se disponível, senão fallback para localhost
-        const API_BASE = window.location.hostname === 'localhost' ? 
-                         'http://localhost:8000' : '/api';
+        // Usar proxy interno do Nginx para evitar problemas de CORS
+        const API_BASE = '/api';
         
         // Configurar drag & drop
         document.addEventListener('DOMContentLoaded', function() {
@@ -522,15 +521,12 @@
             const password = document.getElementById('password').value;
             
             try {
-                const response = await fetch(`${API_BASE}/auth/login`, {
+                const response = await fetch(`${API_BASE}/api/v1/auth/login`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/x-www-form-urlencoded',
                     },
-                    body: JSON.stringify({
-                        username: username,
-                        password: password
-                    })
+                    body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
                 });
                 
                 if (response.ok) {
@@ -640,20 +636,15 @@
                 const base64Data = e.target.result;
                 
                 // Enviar para API
-                const response = await fetch(`${API_BASE}/vision/process`, {
+                const response = await fetch(`${API_BASE}/api/v1/vision/detect/signal-plates`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        image_request: {
-                            image_data: base64Data
-                        },
-                        save_results: false,
-                        return_annotated_image: true,
-                        return_confidence_scores: true,
-                        return_processing_time: true
+                        image: base64Data,
+                        confidence_threshold: 0.5
                     })
                 });
                 
@@ -715,41 +706,17 @@
         
         // Exibir resultados de imagem
         function displayResults(data) {
-            const result = data.result;
-            
-            if (result.success) {
+            if (data.success) {
                 document.getElementById('results-container').innerHTML = `
                     <div class="success-message">
                         ✅ Processamento concluído com sucesso!
                     </div>
                 `;
                 
-                // Mostrar análise da placa
-                let plateHtml = '';
-                if (result.metadata && result.metadata.plate_analysis) {
-                    const plate = result.metadata.plate_analysis;
-                    const typeIcon = plate.tipo === 'mercosul' ? '🇧🇷' : plate.tipo === 'convencional' ? '🏷️' : '❓';
-                    const typeColor = plate.tipo === 'mercosul' ? '#28a745' : plate.tipo === 'convencional' ? '#007bff' : '#6c757d';
-                    
-                    plateHtml = `
-                        <div class="plate-analysis" style="border-left: 4px solid ${typeColor}; padding: 15px; background: #f8f9fa; border-radius: 5px;">
-                            <h4 style="color: ${typeColor}; margin-bottom: 10px;">${typeIcon} ${plate.numero || 'Não identificado'}</h4>
-                            <p><strong>Tipo:</strong> ${plate.tipo || 'Desconhecido'}</p>
-                            <p><strong>Estado:</strong> ${plate.estado || 'Não identificado'}</p>
-                            <p><strong>Formato:</strong> ${plate.formato || 'N/A'}</p>
-                            <p><strong>Padrão válido:</strong> ${plate.padrao_valido || 'N/A'}</p>
-                            <p><strong>Confiança:</strong> ${plate.confianca || 'N/A'}</p>
-                            <p><small><em>${plate.caracteristicas || ''}</em></small></p>
-                        </div>
-                    `;
-                } else {
-                    plateHtml = '<p>Análise de placa não disponível.</p>';
-                }
-                
                 // Mostrar detecções
                 let detectionsHtml = '';
-                if (result.detections && result.detections.length > 0) {
-                    result.detections.forEach((detection, index) => {
+                if (data.detections && data.detections.length > 0) {
+                    data.detections.forEach((detection, index) => {
                         const detectionIcon = detection.class_name === 'license_plate' ? '🚗' : 
                                             detection.class_name === 'traffic_sign' ? '🚦' : '🔍';
                         detectionsHtml += `
@@ -757,7 +724,7 @@
                                 <strong>${detectionIcon} Detecção ${index + 1}</strong><br>
                                 Classe: ${detection.class_name}<br>
                                 Confiança: ${(detection.confidence * 100).toFixed(1)}%<br>
-                                Área: [${detection.bbox.join(', ')}]
+                                Área: [${detection.bbox.x1}, ${detection.bbox.y1}, ${detection.bbox.x2}, ${detection.bbox.y2}]
                             </div>
                         `;
                     });
@@ -765,40 +732,18 @@
                     detectionsHtml = '<p>Nenhuma detecção encontrada.</p>';
                 }
                 
-                // Mostrar OCR
-                let ocrHtml = '';
-                if (result.ocr_results && result.ocr_results.length > 0) {
-                    result.ocr_results.forEach((ocr, index) => {
-                        const isPlateAnalysis = ocr.ocr_type === 'classifier';
-                        const ocrIcon = isPlateAnalysis ? '🧠' : '📝';
-                        const ocrClass = isPlateAnalysis ? 'plate-classifier-item' : 'ocr-item';
-                        
-                        ocrHtml += `
-                            <div class="${ocrClass}">
-                                <strong>${ocrIcon} ${isPlateAnalysis ? 'Análise Inteligente' : `Texto ${index + 1}`}</strong><br>
-                                "${ocr.text}"<br>
-                                Confiança: ${(ocr.confidence * 100).toFixed(1)}%<br>
-                                Tipo: ${ocr.ocr_type}
-                            </div>
-                        `;
-                    });
-                } else {
-                    ocrHtml = '<p>Nenhum texto extraído.</p>';
-                }
-                
                 // Mostrar performance
                 const performanceHtml = `
-                    <p><strong>⏱️ Tempo de processamento:</strong> ${result.processing_time.toFixed(3)}s</p>
-                    <p><strong>🆔 ID da imagem:</strong> ${result.image_id}</p>
-                    <p><strong>✅ Status:</strong> ${result.success ? 'Sucesso' : 'Falha'}</p>
+                    <p><strong>🆔 ID da imagem:</strong> ${data.image_id}</p>
+                    <p><strong>✅ Status:</strong> ${data.success ? 'Sucesso' : 'Falha'}</p>
                     <p><strong>🕐 Timestamp:</strong> ${new Date(data.timestamp).toLocaleString()}</p>
-                    <p><strong>🔖 Versão da API:</strong> ${data.api_version}</p>
+                    <p><strong>📊 Total de detecções:</strong> ${data.total_detections}</p>
                 `;
                 
                 // Atualizar interface
-                document.getElementById('plate-analysis').innerHTML = plateHtml;
+                document.getElementById('plate-analysis').innerHTML = '<p>Análise de placa não disponível neste endpoint.</p>';
                 document.getElementById('detections-list').innerHTML = detectionsHtml;
-                document.getElementById('ocr-list').innerHTML = ocrHtml;
+                document.getElementById('ocr-list').innerHTML = '<p>OCR não disponível neste endpoint.</p>';
                 document.getElementById('performance-info').innerHTML = performanceHtml;
                 
                 // Esconder seções de vídeo
@@ -809,7 +754,7 @@
                 document.getElementById('results-grid').style.display = 'grid';
                 
             } else {
-                showError(`Falha no processamento: ${result.error_message}`);
+                showError(`Falha no processamento: ${data.message}`);
             }
         }
         
@@ -959,7 +904,9 @@
         // Auto-login ao carregar
         window.addEventListener('load', function() {
             // Tentar login automático
-            setTimeout(login, 1000);
+            setTimeout(function() {
+                login();
+            }, 1000);
         });
     </script>
 </body>

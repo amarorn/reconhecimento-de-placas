@@ -19,9 +19,11 @@ try:
     from fastapi.middleware.trustedhost import TrustedHostMiddleware
     from fastapi.responses import JSONResponse
     from fastapi.exceptions import RequestValidationError
+    from fastapi.openapi.utils import get_openapi
     from starlette.exceptions import HTTPException as StarletteHTTPException
 except ImportError:
     FastAPI = None
+    get_openapi = None
 
 from .routers import (
     health_router, vision_router, 
@@ -309,7 +311,6 @@ def run(host: str = DEFAULT_HOST, port: int = DEFAULT_PORT,
         app,
         host=host,
         port=port,
-        debug=debug,
         reload=reload
     )
 

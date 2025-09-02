@@ -95,7 +95,7 @@ async def detect_signal_plates(
             success=True,
             message="Placas de sinalização detectadas com sucesso",
             timestamp=datetime.utcnow(),
-            image_id=request.image_id,
+            image_id="test_image_001",
             detections=mock_detections,
             total_detections=len(mock_detections)
         )
@@ -134,7 +134,7 @@ async def detect_vehicle_plates(
             success=True,
             message="Placas de veículos detectadas com sucesso",
             timestamp=datetime.utcnow(),
-            image_id=request.image_id,
+            image_id="test_image_001",
             detections=mock_detections,
             total_vehicles=len(mock_detections),
             total_plates=len(mock_detections)
@@ -166,7 +166,7 @@ async def detect_general(
             success=True,
             message="Detecção geral realizada com sucesso",
             timestamp=datetime.utcnow(),
-            image_id=request.image_id,
+            image_id="test_image_001",
             detections=mock_detections,
             total_detections=len(mock_detections)
         )
@@ -280,9 +280,12 @@ async def login(
     password: str = Form(...)
 ):
     try:
-        if username == "admin" and password == "admin":
+        if username == "admin" and password == "admin123":
+            # Criar um token JWT simples para testes
+            from .auth import create_access_token
+            access_token = create_access_token(data={"sub": username, "username": username})
             return {
-                "access_token": "mock_token_12345",
+                "access_token": access_token,
                 "token_type": "bearer",
                 "username": username
             }
