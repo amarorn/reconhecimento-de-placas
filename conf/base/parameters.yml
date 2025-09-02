@@ -1,0 +1,17 @@
+preprocessor:
+  resize_enabled: true
+  target_size: [640, 640]
+  denoising_enabled: true
+  contrast_enhancement: true
+  normalization: true
+
+detector:
+  model_path: yolov8n.pt
+  confidence_threshold: 0.5
+  nms_threshold: 0.4
+  input_size: [640, 640]
+
+ocr:
+  language: pt
+  use_gpu: false
+  use_angle_cls: true

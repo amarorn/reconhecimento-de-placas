@@ -1,0 +1,14 @@
+raw_image:
+  type: MemoryDataSet
+
+preprocessed_image:
+  type: MemoryDataSet
+
+detections:
+  type: MemoryDataSet
+
+ocr_results:
+  type: MemoryDataSet
+
+integrated_results:
+  type: MemoryDataSet
