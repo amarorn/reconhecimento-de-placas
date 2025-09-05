@@ -1,0 +1,130 @@
+# Configuração Completa do Pipeline com Detectores Especializados
+# ===============================================================
+
+# Configuração do modelo principal
+model:
+  type: "yolo"
+  weights_path: "yolov8l.pt"
+  confidence_threshold: 0.5
+  iou_threshold: 0.45
+  device: "auto"
+  half_precision: true
+  max_detections: 100
+
+# Configuração do OCR
+ocr:
+  type: "paddleocr"
+  language: "pt"
+  confidence_threshold: 0.5
+  max_text_length: 100
+  enable_fallback: true
+  fallback_order: ["paddleocr", "easyocr", "tesseract"]
+
+# Configuração do pré-processamento
+preprocessing:
+  enabled: true
+  methods: ["clahe", "bilateral", "sharpening"]
+  target_size: [1024, 1024]
+  normalize: true
+  enhance_contrast: true
+  reduce_noise: true
+
+# Configuração dos detectores especializados
+specialized_detector:
+  enabled: true
+  enabled_detectors: ["vehicle", "signal", "pothole"]
+  
+  vehicle_detector:
+    model_path: "models/vehicle_plates_yolo.pt"
+    confidence_threshold: 0.6
+    iou_threshold: 0.45
+    device: "auto"
+  
+  signal_detector:
+    model_path: "models/signal_plates_yolo.pt"
+    confidence_threshold: 0.6
+    iou_threshold: 0.45
+    device: "auto"
+  
+  pothole_detector:
+    model_path: "models/pothole_yolo.pt"
+    confidence_threshold: 0.6
+    iou_threshold: 0.45
+    device: "auto"
+    analysis:
+      enable_depth_estimation: true
+      enable_area_calculation: true
+      enable_risk_scoring: true
+      min_area_threshold: 200
+      max_area_threshold: 100000
+
+# Configuração do pipeline
+pipeline:
+  enable_preprocessing: true
+  enable_detection: true
+  enable_specialized_detection: true
+  enable_ocr: true
+  enable_integration: true
+  batch_size: 8
+  cache_results: true
+  max_cache_size: 2000
+
+# Configurações globais
+log_level: "INFO"
+enable_monitoring: true
+enable_metrics: true
+enable_alerts: true
+
+# Configurações de performance
+max_processing_time: 30.0
+enable_async: true
+enable_multiprocessing: true
+max_workers: 6
+
+# Configurações de validação
+validation_rules:
+  min_plate_size: [50, 50]
+  max_plate_size: [300, 100]
+  min_confidence: 0.3
+  max_processing_time: 60.0
+
+# Configurações de cache
+cache:
+  enabled: true
+  max_size: 2000
+  ttl_seconds: 3600
+  strategy: "lru"
+
+# Configurações de monitoramento
+monitoring:
+  enable_metrics: true
+  enable_logging: true
+  enable_profiling: true
+  metrics_interval: 30
+  alert_thresholds:
+    max_processing_time: 30.0
+    min_success_rate: 0.8
+    max_error_rate: 0.2
+    max_memory_usage: 85.0
+    max_cpu_usage: 80.0
+
+# Configurações de exportação
+export:
+  formats: ["json", "csv", "xml"]
+  json:
+    pretty_print: true
+    include_metadata: true
+  csv:
+    include_headers: true
+    delimiter: ","
+  xml:
+    root_element: "detections"
+    pretty_print: true
+
+# Configurações de segurança
+security:
+  enable_rate_limiting: true
+  max_requests_per_minute: 100
+  enable_input_validation: true
+  max_file_size_mb: 50
+  allowed_file_types: ["jpg", "jpeg", "png", "bmp", "tiff"]

@@ -1,0 +1,190 @@
+# Configuração dos Detectores Especializados
+# =========================================
+
+# Detectores habilitados
+enabled_detectors:
+  - vehicle
+  - signal
+  - pothole
+
+# Configuração do Detector de Placas de Veículos
+vehicle_detector:
+  model_path: "models/vehicle_plates_yolo.pt"
+  confidence_threshold: 0.5
+  iou_threshold: 0.45
+  device: "auto"
+  
+  # Classes específicas para veículos
+  vehicle_classes:
+    - car
+    - truck
+    - bus
+    - motorcycle
+    - bicycle
+    - van
+    - pickup
+  
+  # Classes específicas para placas
+  plate_classes:
+    - mercosul_plate
+    - old_plate
+    - diplomatic_plate
+    - official_plate
+    - motorcycle_plate
+    - truck_plate
+    - trailer_plate
+
+# Configuração do Detector de Placas de Sinalização
+signal_detector:
+  model_path: "models/signal_plates_yolo.pt"
+  confidence_threshold: 0.5
+  iou_threshold: 0.45
+  device: "auto"
+  
+  # Sinais de regulamentação (CONTRAN R-1 a R-15)
+  regulatory_signs:
+    - stop_sign
+    - yield_sign
+    - no_entry
+    - no_left_turn
+    - no_right_turn
+    - no_u_turn
+    - no_parking
+    - no_stopping
+    - no_overtaking
+    - speed_limit
+    - weight_limit
+    - height_limit
+    - width_limit
+    - customs
+    - chains_required
+  
+  # Sinais de aviso
+  warning_signs:
+    - curve_left
+    - curve_right
+    - double_curve
+    - intersection
+    - roundabout
+    - pedestrian_crossing
+    - school_zone
+    - construction
+    - animals
+    - falling_rocks
+  
+  # Sinais de informação
+  information_signs:
+    - one_way
+    - two_way
+    - priority_road
+    - keep_right
+    - keep_left
+    - buses_only
+    - bicycles_only
+    - pedestrians_only
+    - parking
+    - hospital
+
+# Configuração do Detector de Buracos (Modelo Multimodal + Análise de Vídeo)
+pothole_detector:
+  model_path: "models/pothole_yolo.pt"
+  confidence_threshold: 0.5
+  iou_threshold: 0.45
+  device: "auto"
+  
+  # Tipos de buracos detectados
+  pothole_types:
+    - small_pothole
+    - medium_pothole
+    - large_pothole
+    - crack
+    - sinkhole
+    - road_damage
+    - surface_deterioration
+    - edge_drop
+  
+  # Níveis de severidade
+  severity_levels:
+    low:
+      depth_range: [0.01, 0.05]
+      risk_score: [0.1, 0.3]
+      color: [0, 255, 0]
+    medium:
+      depth_range: [0.05, 0.15]
+      risk_score: [0.3, 0.6]
+      color: [0, 255, 255]
+    high:
+      depth_range: [0.15, 0.30]
+      risk_score: [0.6, 0.8]
+      color: [0, 165, 255]
+    critical:
+      depth_range: [0.30, 1.0]
+      risk_score: [0.8, 1.0]
+      color: [0, 0, 255]
+  
+  # Configurações de análise
+  analysis:
+    enable_depth_estimation: true
+    enable_area_calculation: true
+    enable_risk_scoring: true
+    min_area_threshold: 100
+    max_area_threshold: 100000
+  
+  # Configurações para análise de vídeo
+  video_analysis:
+    frame_skip: 1                    # Processar todos os frames (1) ou pular alguns (2, 3, etc.)
+    min_track_length: 3              # Mínimo de frames para considerar um track estável
+    tracking_threshold: 0.7          # Threshold de sobreposição para tracking (0.0 a 1.0)
+    max_tracks: 50                   # Máximo de tracks simultâneos
+    enable_frame_quality_assessment: true
+    enable_temporal_analysis: true
+    enable_stability_scoring: true
+    output_annotated_video: true     # Gerar vídeo com detecções anotadas
+    save_frame_analyses: true        # Salvar análises de cada frame
+    generate_tracking_report: true   # Gerar relatório detalhado de tracking
+
+# Configurações globais
+global_settings:
+  # Processamento em lote
+  batch_processing:
+    enabled: true
+    max_batch_size: 8
+  
+  # Cache de resultados
+  caching:
+    enabled: true
+    max_cache_size: 1000
+    ttl_seconds: 3600
+  
+  # Logging
+  logging:
+    level: "INFO"
+    format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  
+  # Performance
+  performance:
+    enable_half_precision: true
+    enable_tensorrt: false
+    max_processing_time: 30.0
+
+# Configurações de exportação
+export:
+  formats:
+    - json
+    - csv
+    - xml
+  
+  # Configurações JSON
+  json:
+    pretty_print: true
+    include_metadata: true
+  
+  # Configurações CSV
+  csv:
+    include_headers: true
+    delimiter: ","
+  
+  # Configurações XML
+  xml:
+    root_element: "detections"
+    pretty_print: true
